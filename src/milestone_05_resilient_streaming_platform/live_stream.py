@@ -8,6 +8,7 @@ and feeds them through the EventTimeStreamProcessor and DuckDB real-time mart.
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import Any
 
 import duckdb
 import httpx
@@ -134,3 +135,31 @@ class LiveStreamIngestor:
             "ingested": total_ingested,
             "timestamp": now_utc,
         }
+
+    def get_order_book_depth(self, symbol: str = "BTCUSDT", limit: int = 40) -> dict[str, Any]:
+        """Fetch real-time order book depth from Binance API or fallback to simulated depth."""
+        url = f"https://api.binance.com/api/v3/depth?symbol={symbol.upper()}&limit={limit}"
+        try:
+            res = httpx.get(url, timeout=3.0)
+            res.raise_for_status()
+            data = res.json()
+            bids = [[float(p), float(q)] for p, q in data.get("bids", [])]
+            asks = [[float(p), float(q)] for p, q in data.get("asks", [])]
+            return {
+                "symbol": symbol.upper(),
+                "bids": bids,
+                "asks": asks,
+                "source": "live_binance",
+            }
+        except Exception as exc:
+            logger.warning("Falling back to synthetic order book: %s", exc)
+            # Realistic synthetic fallback
+            base_price = 77300.0 if symbol == "BTCUSDT" else 3500.0 if symbol == "ETHUSDT" else 155.0
+            bids = [[round(base_price - i * 1.5, 2), round(0.5 + i * 0.2, 4)] for i in range(1, limit + 1)]
+            asks = [[round(base_price + i * 1.5, 2), round(0.5 + i * 0.2, 4)] for i in range(1, limit + 1)]
+            return {
+                "symbol": symbol.upper(),
+                "bids": bids,
+                "asks": asks,
+                "source": "fallback_model",
+            }
