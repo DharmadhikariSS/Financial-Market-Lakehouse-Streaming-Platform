@@ -88,7 +88,14 @@ make run-m5-stream
 make run-m5-backfill
 ```
 
-### 6. Run Containerized Stack (Docker Profile)
+### 6. Launch Interactive Visual Dashboard (Streamlit & DuckDB)
+```bash
+# Launch interactive real-time visual dashboard
+make run-dashboard
+# Access in browser at: http://localhost:8501
+```
+
+### 7. Run Containerized Stack (Docker Profile)
 ```bash
 # Launch PostgreSQL 16 Alpine with memory tuning
 docker compose -f docker/docker-compose.yml --profile milestone-01 up -d

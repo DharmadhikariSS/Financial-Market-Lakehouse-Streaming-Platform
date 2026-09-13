@@ -55,6 +55,9 @@ run-m5-stream:
 run-m5-backfill:
 	python -m src.milestone_05_resilient_streaming_platform.backfill --dry-run
 
+run-dashboard:
+	streamlit run src/dashboard/app.py --server.port 8501 --server.headless true
+
 clean:
 	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov .coverage
 	rm -rf data/*.duckdb*
