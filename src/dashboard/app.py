@@ -16,7 +16,7 @@ import pandas as pd
 import streamlit as st
 
 from src.common.config import get_settings
-from src.milestone_04_lakehouse_cdc_contracts.iceberg_writer import IcebergTableManager
+from src.milestone_04_lakehouse_cdc_contracts.iceberg_writer import IcebergLakehouseTable
 from src.milestone_05_resilient_streaming_platform.backfill import BackfillEngine
 from src.milestone_05_resilient_streaming_platform.dlq_router import DeadLetterQueueRouter
 from src.milestone_05_resilient_streaming_platform.run_streaming_pipeline import (
@@ -224,7 +224,7 @@ with tab2:
     st.caption("Inspect ACID table versions, committed snapshots, and reconstruct historical ledger states.")
 
     iceberg_dir = settings.BASE_DIR / "data" / "lakehouse" / "iceberg"
-    table_mgr = IcebergTableManager(table_dir=iceberg_dir)
+    table_mgr = IcebergLakehouseTable(table_dir=iceberg_dir)
     snapshots = table_mgr.list_snapshots()
 
     if snapshots:
@@ -232,14 +232,14 @@ with tab2:
         with col_meta:
             latest_snap = snapshots[-1]
             st.markdown("##### Current Table Metadata")
-            st.markdown(f"- **Current Snapshot ID**: `{latest_snap.snapshot_id}`")
+            st.markdown(f"- **Current Snapshot ID**: `{latest_snap['snapshot_id']}`")
             st.markdown(f"- **Total Snapshots**: `{len(snapshots)}`")
             st.markdown("- **Format Specification**: Apache Iceberg v2 Format Spec")
             st.markdown("- **Primary Key**: `(symbol, trade_id)`")
 
         with col_slider:
             st.markdown("##### ⏳ Time-Travel Snapshot Selector")
-            snap_ids = [s.snapshot_id for s in snapshots]
+            snap_ids = [s["snapshot_id"] for s in snapshots]
             selected_snap_id = st.select_slider(
                 "Scrub table history to query as of snapshot:",
                 options=snap_ids,
@@ -250,14 +250,14 @@ with tab2:
         st.markdown("#### Lakehouse Snapshot Commit Log")
         snap_history = []
         for s in snapshots:
-            dt = datetime.fromtimestamp(s.timestamp_ms / 1000.0, tz=UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
-            is_active = "🟢 CURRENT" if s.snapshot_id == selected_snap_id else "⚪ HISTORICAL"
+            dt = datetime.fromtimestamp(s.get("timestamp_ms", 0) / 1000.0, tz=UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+            is_active = "🟢 CURRENT" if s["snapshot_id"] == selected_snap_id else "⚪ HISTORICAL"
             snap_history.append({
                 "State": is_active,
-                "Snapshot ID": str(s.snapshot_id),
-                "Parent ID": str(s.parent_snapshot_id or "root"),
+                "Snapshot ID": str(s["snapshot_id"]),
+                "Parent ID": str(s.get("parent_snapshot_id") or "root"),
                 "Committed At": dt,
-                "Manifest File": Path(s.manifest_file).name,
+                "Manifest File": Path(s["manifest_file"]).name,
             })
         st.dataframe(pd.DataFrame(snap_history), use_container_width=True, hide_index=True)
 

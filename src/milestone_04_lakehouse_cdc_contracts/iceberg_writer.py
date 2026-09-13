@@ -212,3 +212,7 @@ class IcebergLakehouseTable:
         """Returns all historical snapshots."""
         meta = self.get_latest_metadata()
         return meta.get("snapshots", [])
+
+
+# Backward-compatible alias
+IcebergTableManager = IcebergLakehouseTable
