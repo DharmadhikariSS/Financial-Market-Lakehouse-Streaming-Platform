@@ -19,6 +19,7 @@ from src.common.config import get_settings
 from src.milestone_04_lakehouse_cdc_contracts.iceberg_writer import IcebergLakehouseTable
 from src.milestone_05_resilient_streaming_platform.backfill import BackfillEngine
 from src.milestone_05_resilient_streaming_platform.dlq_router import DeadLetterQueueRouter
+from src.milestone_05_resilient_streaming_platform.live_stream import LiveStreamIngestor
 from src.milestone_05_resilient_streaming_platform.run_streaming_pipeline import (
     run_streaming_pipeline,
 )
@@ -60,10 +61,30 @@ st.markdown(
     .badge-blue { background-color: rgba(52, 152, 219, 0.2); color: #3498db; border: 1px solid #3498db; }
     .badge-gold { background-color: rgba(241, 196, 15, 0.2); color: #f1c40f; border: 1px solid #f1c40f; }
     .badge-purple { background-color: rgba(155, 89, 182, 0.2); color: #9b59b6; border: 1px solid #9b59b6; }
+    .badge-red { background-color: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c; }
+    .live-pulse {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #2ecc71;
+        box-shadow: 0 0 8px #2ecc71;
+        margin-right: 6px;
+        animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+        70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(46, 204, 113, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+    }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
+# Initialize Ingestor in session state
+if "live_ingestor" not in st.session_state:
+    st.session_state.live_ingestor = LiveStreamIngestor()
 
 # -----------------------------------------------------------------------------
 # SIDEBAR: PLATFORM CONTROLS & ARCHITECTURE STATUS
@@ -71,20 +92,19 @@ st.markdown(
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/bullish.png", width=64)
     st.title("Control Tower")
+    st.markdown("<div><span class='live-pulse'></span><b>STREAM FEED: LIVE</b></div>", unsafe_allow_html=True)
     st.caption("5-Tier Financial Market Ledger")
 
     st.markdown("---")
-    st.subheader("🏛️ Architecture Milestones")
-    st.markdown("✅ **M1**: Ingestion Engine (UPSERT Idempotency)")
-    st.markdown("✅ **M2**: Docker Batch & Scheduler")
-    st.markdown("✅ **M3**: Snappy Parquet & dbt Marts")
-    st.markdown("✅ **M4**: Iceberg ACID CDC & Time-Travel")
-    st.markdown("✅ **M5**: Event-Time Stream & DLQ")
+    st.subheader("⚡ Live Streaming Actions")
 
-    st.markdown("---")
-    st.subheader("⚡ Live Pipeline Actions")
+    if st.button("🔥 Fetch Live Binance Ticks Now", use_container_width=True):
+        with st.spinner("Fetching live market trades from Binance API..."):
+            res = st.session_state.live_ingestor.ingest_live_batch(limit_per_symbol=25)
+            st.success(f"Ingested {res['ingested']} live trades into Lakehouse mart!")
+            st.rerun()
 
-    if st.button("🚀 Trigger Stream Batch (M5)", use_container_width=True):
+    if st.button("🚀 Trigger Stress Batch (M5)", use_container_width=True):
         with st.spinner("Executing streaming engine with out-of-order records & DLQ..."):
             res = run_streaming_pipeline(total_events=120, out_of_order_count=8, poison_pill_count=4)
             st.success(f"Processed {res['successfully_processed']} events! Materialized {res['materialized_candles_count']} candles.")
@@ -98,6 +118,14 @@ with st.sidebar:
             bf_res = engine.execute_backfill(from_ts=start_dt, to_ts=end_dt, dry_run=False)
             st.success(f"Backfill complete! Generated {bf_res['generated_candles']} candles.")
             st.rerun()
+
+    st.markdown("---")
+    st.subheader("🏛️ Architecture Milestones")
+    st.markdown("✅ **M1**: Ingestion Engine (UPSERT Idempotency)")
+    st.markdown("✅ **M2**: Docker Batch & Scheduler")
+    st.markdown("✅ **M3**: Snappy Parquet & dbt Marts")
+    st.markdown("✅ **M4**: Iceberg ACID CDC & Time-Travel")
+    st.markdown("✅ **M5**: Event-Time Stream & DLQ")
 
     st.markdown("---")
     st.markdown(
@@ -143,10 +171,32 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 # =============================================================================
 with tab1:
     st.subheader("Real-Time Event-Time Candlestick Mart (1-Minute Tumbling Windows)")
-    st.caption("Aggregated via 5-second bounded out-of-order watermark from live Avro stream.")
+    st.caption("Aggregated via 5-second bounded out-of-order watermark from live Confluent Avro stream.")
 
-    db_path = settings.BASE_DIR / "data" / "streaming" / "realtime_mart.duckdb"
-    if db_path.exists():
+    top_c1, top_c2 = st.columns([3, 1])
+    with top_c1:
+        auto_feed = st.toggle("🔴 Continuous Live Feed (Auto-pull from Binance every 3s)", value=True)
+    with top_c2:
+        if st.button("⚡ Force Refresh Now"):
+            st.session_state.live_ingestor.ingest_live_batch(limit_per_symbol=15)
+            st.rerun()
+
+    # Fragment for live auto-updating streaming data
+    @st.fragment(run_every="3s" if auto_feed else None)
+    def render_live_stream_view():
+        db_path = settings.BASE_DIR / "data" / "streaming" / "realtime_mart.duckdb"
+
+        # Auto-pull a micro batch from Binance if auto_feed is enabled
+        if auto_feed:
+            try:
+                st.session_state.live_ingestor.ingest_live_batch(limit_per_symbol=10)
+            except Exception:
+                pass
+
+        if not db_path.exists():
+            st.info("Initializing DuckDB mart...")
+            return
+
         with duckdb.connect(str(db_path)) as conn:
             candles_df = conn.execute("""
                 SELECT
@@ -165,19 +215,34 @@ with tab1:
                 FROM realtime_market_candles
                 ORDER BY window_start DESC, symbol ASC;
             """).df()
-    else:
-        candles_df = pd.DataFrame()
 
-    if not candles_df.empty:
-        col_sym, col_refresh = st.columns([3, 1])
+            raw_trades_df = conn.execute("""
+                SELECT
+                    trade_id,
+                    symbol,
+                    price,
+                    quantity,
+                    quote_quantity,
+                    strftime(trade_timestamp, '%H:%M:%S.%f') AS trade_time,
+                    is_buyer_maker,
+                    trade_type
+                FROM realtime_raw_trades
+                ORDER BY trade_timestamp DESC
+                LIMIT 20;
+            """).df()
+
+        if candles_df.empty:
+            st.info("No candle data available yet. Click 'Fetch Live Binance Ticks Now' in the sidebar.")
+            return
+
+        # Symbol Selector
+        available_symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
+        col_sym, col_status = st.columns([2, 2])
         with col_sym:
-            available_symbols = candles_df["symbol"].unique().tolist()
-            selected_symbol = st.selectbox("Select Trading Instrument", available_symbols, index=0)
-        with col_refresh:
-            st.write("")
-            st.write("")
-            if st.button("Refresh Mart"):
-                st.rerun()
+            selected_symbol = st.selectbox("Trading Instrument", available_symbols, index=0)
+        with col_status:
+            current_time = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+            st.markdown(f"<div style='margin-top:28px; color:#2ecc71;'><b>● LIVE STREAM ACTIVE</b> (Synced: {current_time})</div>", unsafe_allow_html=True)
 
         sym_df = candles_df[candles_df["symbol"] == selected_symbol].copy()
         sym_df = sym_df.sort_values("window_start")
@@ -185,14 +250,14 @@ with tab1:
         if not sym_df.empty:
             latest = sym_df.iloc[-1]
             m1, m2, m3, m4, m5 = st.columns(5)
-            m1.metric("Latest Close", f"${latest['close_price']:,.2f}")
-            m2.metric("VWAP", f"${latest['vwap']:,.2f}")
-            m3.metric("24h Quote Vol", f"${sym_df['quote_volume'].sum():,.2f}")
-            m4.metric("Window Trades", f"{int(latest['trade_count'])}")
+            m1.metric("Live Market Price", f"${latest['close_price']:,.2f}")
+            m2.metric("VWAP (Volume-Weighted)", f"${latest['vwap']:,.2f}")
+            m3.metric("Window Base Volume", f"{latest['base_volume']:,.4f}")
+            m4.metric("Trades In Window", f"{int(latest['trade_count'])}")
             m5.metric("Taker Buy %", f"{latest['taker_buy_ratio']:.1f}%")
 
             # Candlestick Price & VWAP Chart
-            st.markdown(f"#### Price Action & VWAP Trend ({selected_symbol})")
+            st.markdown(f"#### Price Action & Real-Time VWAP ({selected_symbol})")
             chart_df = sym_df[["window_start", "close_price", "vwap", "high_price", "low_price"]].copy()
             chart_df["window_start"] = pd.to_datetime(chart_df["window_start"])
             chart_df = chart_df.set_index("window_start")
@@ -203,18 +268,42 @@ with tab1:
                 use_container_width=True,
             )
 
-            # Materialized Candles Ledger Table
-            st.markdown("#### Materialized 1-Minute Candles Ledger")
-            st.dataframe(
-                sym_df[[
-                    "window_start", "open_price", "high_price", "low_price",
-                    "close_price", "vwap", "base_volume", "trade_count", "taker_buy_ratio"
-                ]],
-                use_container_width=True,
-                hide_index=True,
-            )
-    else:
-        st.info("No streaming candles in DuckDB mart yet. Click 'Trigger Stream Batch (M5)' in the sidebar to populate!")
+        # ---------------------------------------------------------------------
+        # LIVE TRADE TAPE (TIME & SALES)
+        # ---------------------------------------------------------------------
+        st.markdown("#### ⚡ Live Trade Tape (Time & Sales Feed)")
+        st.caption("Individual streaming transactions serialized via Avro Confluent Wire Protocol.")
+
+        if not raw_trades_df.empty:
+            tape_display = []
+            for _, r in raw_trades_df.iterrows():
+                side = "🔴 SELL (MAKER)" if r["is_buyer_maker"] else "🟢 BUY (TAKER)"
+                tape_display.append({
+                    "Trade ID": str(r["trade_id"]),
+                    "Time": r["trade_time"][:12],
+                    "Symbol": r["symbol"],
+                    "Side": side,
+                    "Price ($)": f"${r['price']:,.2f}",
+                    "Size": f"{r['quantity']:,.4f}",
+                    "Value ($)": f"${r['quote_quantity']:,.2f}",
+                    "Wire Schema": "Avro v2 (Confluent)",
+                })
+            st.dataframe(pd.DataFrame(tape_display), use_container_width=True, hide_index=True)
+
+        # ---------------------------------------------------------------------
+        # MATERIALIZED 1-MINUTE CANDLES LEDGER
+        # ---------------------------------------------------------------------
+        st.markdown("#### 📊 Materialized 1-Minute Candles Ledger")
+        st.dataframe(
+            sym_df[[
+                "window_start", "open_price", "high_price", "low_price",
+                "close_price", "vwap", "base_volume", "trade_count", "taker_buy_ratio"
+            ]],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    render_live_stream_view()
 
 # =============================================================================
 # TAB 2: LAKEHOUSE CDC & TIME-TRAVEL INSPECTOR
