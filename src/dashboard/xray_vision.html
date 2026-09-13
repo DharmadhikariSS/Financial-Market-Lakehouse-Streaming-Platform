@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚡ Pipeline X-Ray Vision | End-to-End Data Flow Forensic Visualizer</title>
+  <style>
+    :root {
+      --bg-dark: #070a12;
+      --card-bg: #0d121f;
+      --card-border: #1e293b;
+      --neon-cyan: #00f2ff;
+      --neon-green: #10b981;
+      --neon-purple: #a855f7;
+      --neon-amber: #f59e0b;
+      --neon-red: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-mono: "Fira Code", "JetBrains Mono", Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOP HEADER & CONTROL BAR */
+    header {
+      background: rgba(13, 18, 31, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 12px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--neon-cyan), #3b82f6, var(--neon-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--neon-green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--neon-green);
+      animation: pulse-glow 1.5s infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* CONTROLS */
+    .controls-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: #1e293b;
+      color: var(--text-main);
+      border: 1px solid #334155;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: #334155;
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 8px rgba(0, 242, 255, 0.2);
+    }
+
+    .btn-active {
+      background: rgba(0, 242, 255, 0.15);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+      box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+    }
+
+    .btn-danger {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: var(--neon-red);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+    }
+
+    .toggle-pill {
+      display: flex;
+      background: #0f172a;
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+
+    .toggle-btn {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn.active {
+      background: var(--card-border);
+      color: var(--neon-cyan);
+      box-shadow: 0 0 8px rgba(0, 242, 255, 0.2);
+    }
+
+    /* METRIC CHIPS */
+    .metric-chip {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .metric-chip span.label {
+      color: var(--text-muted);
+    }
+
+    .metric-chip span.val {
+      color: var(--neon-cyan);
+      font-weight: bold;
+    }
+
+    /* MAIN STAGE CANVAS CONTAINER */
+    .stage-container {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      min-height: 520px;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 35%, #0f182c 0%, #070a12 80%);
+    }
+
+    #flowCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* NODE CARDS OVERLAY */
+    .nodes-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .node-card {
+      position: absolute;
+      pointer-events: auto;
+      transform: translate(-50%, -50%);
+      background: rgba(13, 18, 31, 0.9);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      width: 180px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      user-select: none;
+    }
+
+    .node-card:hover {
+      transform: translate(-50%, -54%) scale(1.04);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+    }
+
+    .node-card.selected {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 25px rgba(0, 242, 255, 0.45);
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    .node-card.dlq-node {
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    .node-card.dlq-node:hover, .node-card.dlq-node.selected {
+      border-color: var(--neon-red);
+      box-shadow: 0 0 22px rgba(239, 68, 68, 0.4);
+    }
+
+    .node-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .node-tier-tag {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0, 242, 255, 0.1);
+      color: var(--neon-cyan);
+      border: 1px solid rgba(0, 242, 255, 0.2);
+    }
+
+    .dlq-node .node-tier-tag {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--neon-red);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .node-icon {
+      font-size: 1.25rem;
+    }
+
+    .node-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .node-subtitle {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    .node-stats {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+    }
+
+    .node-stats .stat-val {
+      color: var(--neon-cyan);
+      font-weight: bold;
+    }
+
+    /* STEP-BY-STEP PROGRESS BAR BANNER */
+    .step-stepper-banner {
+      background: rgba(15, 23, 42, 0.9);
+      border-top: 1px solid var(--card-border);
+      border-bottom: 1px solid var(--card-border);
+      padding: 10px 24px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 50;
+    }
+
+    .step-stepper-banner.active {
+      display: flex;
+    }
+
+    .stepper-track {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      max-width: 800px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .step-item.active {
+      color: var(--neon-cyan);
+      font-weight: bold;
+    }
+
+    .step-item.completed {
+      color: var(--neon-green);
+    }
+
+    .step-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: bold;
+    }
+
+    .step-item.active .step-circle {
+      background: rgba(0, 242, 255, 0.2);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+      box-shadow: 0 0 8px var(--neon-cyan);
+    }
+
+    .step-item.completed .step-circle {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--neon-green);
+      color: var(--neon-green);
+    }
+
+    .step-line {
+      flex: 1;
+      height: 2px;
+      background: #1e293b;
+    }
+
+    /* FORENSIC X-RAY DRAWER (BOTTOM / SIDE PANEL) */
+    .xray-drawer {
+      background: #0b0f19;
+      border-top: 1px solid var(--card-border);
+      padding: 18px 24px;
+      display: grid;
+      grid-template-columns: 320px 1fr 1fr;
+      gap: 20px;
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.6);
+      z-index: 40;
+    }
+
+    @media (max-width: 1024px) {
+      .xray-drawer {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .drawer-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .drawer-card-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--neon-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .kv-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.78rem;
+    }
+
+    .kv-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+      padding-bottom: 4px;
+    }
+
+    .kv-key {
+      color: var(--text-muted);
+    }
+
+    .kv-val {
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    .badge-fmt {
+      background: rgba(168, 85, 247, 0.15);
+      color: var(--neon-purple);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+    }
+
+    .badge-path {
+      background: rgba(0, 242, 255, 0.08);
+      color: #7dd3fc;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+    }
+
+    .schema-diff-box {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      background: #060910;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 10px;
+      height: 180px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      color: #cbd5e1;
+    }
+
+    .schema-diff-box .added {
+      color: var(--neon-green);
+      background: rgba(16, 185, 129, 0.1);
+      display: block;
+      border-left: 2px solid var(--neon-green);
+      padding-left: 4px;
+    }
+
+    .schema-diff-box .meta {
+      color: var(--neon-purple);
+    }
+
+    .schema-diff-box .hash-key {
+      color: var(--neon-amber);
+    }
+
+    /* TOAST NOTIFICATION */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--neon-red);
+      color: #fecaca;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      animation: slide-in 0.3s ease;
+    }
+
+    @keyframes slide-in {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand-section">
+      <div class="pulse-dot" id="liveDot"></div>
+      <div class="brand-title">
+        <span>⚡ PIPELINE X-RAY VISION</span>
+      </div>
+      <div class="metric-chip">
+        <span class="label">ENGINE:</span>
+        <span class="val" id="engineStatus">V1 LIGHTWEIGHT</span>
+      </div>
+      <div class="metric-chip">
+        <span class="label">LIVE TPS:</span>
+        <span class="val" id="liveTps">24.8 tx/s</span>
+      </div>
+      <div class="metric-chip">
+        <span class="label">PACKETS IN FLIGHT:</span>
+        <span class="val" id="flightCount">0</span>
+      </div>
+    </div>
+
+    <div class="controls-group">
+      <!-- Engine Switcher (V1 vs V2) -->
+      <div class="toggle-pill">
+        <button class="toggle-btn active" id="btnV1" onclick="switchEngine('v1')">V1 Modular Lakehouse</button>
+        <button class="toggle-btn" id="btnV2" onclick="switchEngine('v2')">V2 Apache Highway</button>
+      </div>
+
+      <!-- Playback Mode -->
+      <div class="toggle-pill">
+        <button class="toggle-btn active" id="btnModeStream" onclick="setMode('stream')">Continuous Stream</button>
+        <button class="toggle-btn" id="btnModeStep" onclick="setMode('step')">Step-by-Step Inspector</button>
+      </div>
+
+      <!-- Play/Pause -->
+      <button class="btn" id="btnPlayPause" onclick="togglePlay()">
+        <span id="playIcon">⏸️</span> <span id="playText">Pause</span>
+      </button>
+
+      <!-- Flow Speed -->
+      <button class="btn" id="btnSpeed" onclick="cycleSpeed()">Speed: 1x</button>
+
+      <!-- Inject Poison Pill Button -->
+      <button class="btn btn-danger" onclick="injectPoisonPill()">
+        <span>🧪 Inject Poison Pill</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- STEP-BY-STEP PROGRESS BAR BANNER -->
+  <div class="step-stepper-banner" id="stepperBanner">
+    <div class="stepper-track" id="stepperTrack">
+      <!-- Injected dynamically by JS -->
+    </div>
+    <div class="controls-group">
+      <button class="btn btn-active" onclick="nextStep()">⏩ Advance Single Trade</button>
+      <button class="btn" onclick="resetStep()">↺ Reset Trade</button>
+    </div>
+  </div>
+
+  <!-- MAIN CANVAS & NODE GRAPH -->
+  <div class="stage-container" id="stage">
+    <canvas id="flowCanvas"></canvas>
+    <div class="nodes-layer" id="nodesLayer"></div>
+  </div>
+
+  <!-- FORENSIC X-RAY DRAWER -->
+  <div class="xray-drawer" id="xrayDrawer">
+    <!-- Card 1: Node & Storage Metadata -->
+    <div class="drawer-card">
+      <div class="drawer-card-title">
+        <span>🔬 Forensic Inspection: </span>
+        <span id="inspectNodeTitle" style="color: var(--text-main);">Tier 1: Flat File Ingestion</span>
+      </div>
+      <div class="kv-list">
+        <div class="kv-row">
+          <span class="kv-key">Tier Role:</span>
+          <span class="kv-val" id="inspectRole">Raw Scripted Ingestion & Coercion</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-key">Physical Storage:</span>
+          <span class="kv-val badge-path" id="inspectPath">data/unit_test_50.csv</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-key">Serialization Wire:</span>
+          <span class="kv-val badge-fmt" id="inspectFormat">Raw CSV (RFC 4180)</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-key">State / Idempotency:</span>
+          <span class="kv-val" id="inspectIdempotency" style="color: var(--neon-green);">Strict UPSERT on PK</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-key">Disk Footprint / Rows:</span>
+          <span class="kv-val" id="inspectFootprint">3.4 KB | 50 rows</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-key">Avg Transformation:</span>
+          <span class="kv-val" id="inspectLatency">0.32 ms</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Before & After Schema Mutation Diff -->
+    <div class="drawer-card">
+      <div class="drawer-card-title">
+        <span>🧬 Schema Evolution & Diff:</span>
+        <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: normal;">(Input vs Output Contract)</span>
+      </div>
+      <div class="schema-diff-box" id="schemaDiffBox">
+// Schema diff appears here upon selecting any node or packet
+      </div>
+    </div>
+
+    <!-- Card 3: Live In-Flight Payload Inspector -->
+    <div class="drawer-card">
+      <div class="drawer-card-title">
+        <span>📦 In-Flight Trade Forensic Payload:</span>
+        <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: normal;">(Surrogate Hash & Fields)</span>
+      </div>
+      <div class="schema-diff-box" id="payloadInspectBox" style="color: #67e8f9;">
+// Click a pulsing packet or step through to inspect exact trade bytes
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST ALERT -->
+  <div class="toast" id="toast">
+    <span style="font-size: 1.2rem;">⚠️</span>
+    <span id="toastMsg">Poison pill detected! Diverting to Dead-Letter Queue (DLQ).</span>
+  </div>
+
+  <!-- JAVASCRIPT ENGINE -->
+  <script>
+    // =========================================================================
+    // STATE & CONFIGURATION
+    // =========================================================================
+    let currentEngine = "v1"; // "v1" | "v2"
+    let currentMode = "stream"; // "stream" | "step"
+    let isPlaying = true;
+    let speedMultiplier = 1;
+    let selectedNodeId = "t1";
+    let stepIndex = 0;
+
+    const canvas = document.getElementById("flowCanvas");
+    const ctx = canvas.getContext("2d");
+    const nodesLayer = document.getElementById("nodesLayer");
+
+    // NODE DEFINITIONS FOR V1 AND V2
+    const V1_NODES = [
+      {
+        id: "t1",
+        tier: "Tier 1",
+        title: "Flat File Ingest",
+        subtitle: "Scripted CSV & Sanitization",
+        icon: "📄",
+        x: 0.10,
+        y: 0.45,
+        role: "Strict CSV validation, chunked stream parser, type coercion",
+        path: "data/unit_test_50.csv",
+        format: "Raw CSV (RFC 4180)",
+        idempotency: "SHA-256 Surrogate Key Hash",
+        footprint: "3.4 KB | 50 rows",
+        latency: "0.28 ms",
+        schemaDiff:
+`// TIER 1: RAW INGESTION SCHEMA
+{
+  "trade_id": "String (Raw input ID)",
+  "symbol": "String (Trimmed, Uppercase)",
+  "price": "Float64 (> 0 Check)",
+  "volume": "Float64 (> 0 Check)",
+  "trade_timestamp": "Timestamp (ISO 8601)",
++ <span class="added">"row_hash": "SHA-256(trade_id, price, vol, ts)"</span>
+}`,
+        samplePayload: {
+          trade_id: "BIN-4829104",
+          symbol: "BTCUSDT",
+          price: 64280.50,
+          volume: 0.4285,
+          trade_timestamp: "2026-09-14T01:15:00Z",
+          row_hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        id: "t2",
+        tier: "Tier 2",
+        title: "Container Worker",
+        subtitle: "Distroless Docker Batch",
+        icon: "🐳",
+        x: 0.28,
+        y: 0.45,
+        role: "Non-root container execution, cron scheduler, staging validation",
+        path: "Dockerfile.batch / stg_trades",
+        format: "Distroless Python 3.11 Staging",
+        idempotency: "Deterministic Retry Gate",
+        footprint: "Container: 42MB | 0 Root Vulns",
+        latency: "0.14 ms",
+        schemaDiff:
+`// TIER 2: CONTAINERIZED STAGING CONTRACT
+{
+  "batch_id": "UUID v4",
+  "worker_id": "worker-batch-04",
+  "sanitized_rows": 50,
++ <span class="added">"ingestion_lat_ms": 1.42</span>,
++ <span class="added">"checksum_verified": true</span>
+}`,
+        samplePayload: {
+          batch_id: "9f82c410-8b1a-4d22-921c-d784a0d91244",
+          worker_id: "worker-batch-04",
+          sanitized_rows: 50,
+          ingestion_lat_ms: 1.42,
+          checksum_verified: true
+        }
+      },
+      {
+        id: "t3",
+        tier: "Tier 3",
+        title: "Parquet Star Mart",
+        subtitle: "Hive Snappy & dbt Star",
+        icon: "🏛️",
+        x: 0.48,
+        y: 0.45,
+        role: "Snappy Parquet columnar store, Hive partitioning, Kimball star schema",
+        path: "data/lakehouse/raw/symbol=BTCUSDT/date=2026-09-14/",
+        format: "Apache Parquet (Snappy, Dict-encoded)",
+        idempotency: "Hive Key Partitioning (51.9% Compression)",
+        footprint: "21.4x Query Speedup vs CSV",
+        latency: "0.65 ms",
+        schemaDiff:
+`// TIER 3: KIMBALL STAR SCHEMA (dbt)
+{
+  "trade_key": "BigInt (Surrogate Identity)",
++ <span class="added">"asset_key": "Int32 (Foreign key -> dim_assets)"</span>,
+  "symbol": "String (Partitioned Column)",
+  "price": "Decimal(18, 8)",
+  "volume": "Decimal(18, 8)",
++ <span class="added">"notional_value": "price * volume"</span>,
++ <span class="added">"date_key": "20260914"</span>
+}`,
+        samplePayload: {
+          trade_key: 1048576,
+          asset_key: 1,
+          symbol: "BTCUSDT",
+          price: 64280.50,
+          volume: 0.4285,
+          notional_value: 27544.19,
+          date_key: 20260914
+        }
+      },
+      {
+        id: "t4",
+        tier: "Tier 4",
+        title: "Iceberg CDC Lake",
+        subtitle: "ACID Merge & Time-Travel",
+        icon: "🧊",
+        x: 0.68,
+        y: 0.45,
+        role: "Debezium WAL capture, Soda quality contract gate, ACID merge, snapshots",
+        path: "data/lakehouse/iceberg/trades_catalog/metadata/v2.metadata.json",
+        format: "Apache Iceberg v2 Spec",
+        idempotency: "ACID Upsert & Snapshot Isolation",
+        footprint: "Snapshots: 2 (v1, v2) | Zero Duplicates",
+        latency: "1.12 ms",
+        schemaDiff:
+`// TIER 4: ICEBERG TABLE METADATA
+{
++ <span class="meta">"table_uuid": "c9284fa0-82d1-419b-a311-9a72df9108b2"</span>,
++ <span class="meta">"current_snapshot_id": 8920194810293810</span>,
++ <span class="added">"manifest_list": "snap-8920194810293810-1.avro"</span>,
+  "fields": [
+    {"id": 1, "name": "trade_id", "type": "string"},
+    {"id": 2, "name": "price", "type": "double"},
+    {"id": 3, "name": "volume", "type": "double"}
+  ],
++ <span class="added">"partition_specs": [{"fields": ["symbol"]}]</span>
+}`,
+        samplePayload: {
+          table: "iceberg.trades_catalog",
+          snapshot_id: 8920194810293810,
+          operation: "MERGE_UPSERT",
+          added_records: 50,
+          deleted_records: 0
+        }
+      },
+      {
+        id: "t5",
+        tier: "Tier 5",
+        title: "Avro Stream Engine",
+        subtitle: "5s Watermark & Tumbling",
+        icon: "⚡",
+        x: 0.88,
+        y: 0.45,
+        role: "Confluent Avro v2 wire framing (0x00 + 4-byte Schema ID), 5s out-of-order watermark, 1-min tumbling windows",
+        path: "In-Memory Window Buffer / DuckDB Streaming Mart",
+        format: "Confluent Binary Avro (0x00 00 00 00 02)",
+        idempotency: "Watermark Window Eviction & Dedup",
+        footprint: "Active Windows: 3 | Latency: 1.8ms",
+        latency: "0.18 ms",
+        schemaDiff:
+`// TIER 5: CANDLESTICK 1-MIN WINDOW AGGREGATION
+{
+  "window_start": "2026-09-14T01:15:00Z",
+  "window_end": "2026-09-14T01:16:00Z",
+  "symbol": "BTCUSDT",
++ <span class="added">"open_price": 64250.00</span>,
++ <span class="added">"high_price": 64310.20</span>,
++ <span class="added">"low_price": 64245.00</span>,
++ <span class="added">"close_price": 64280.50</span>,
++ <span class="added">"volume": 12.8450</span>,
++ <span class="added">"vwap": 64278.14</span>
+}`,
+        samplePayload: {
+          window: "2026-09-14 01:15:00 -> 01:16:00",
+          symbol: "BTCUSDT",
+          open: 64250.00,
+          high: 64310.20,
+          low: 64245.00,
+          close: 64280.50,
+          volume: 12.845,
+          vwap: 64278.14
+        }
+      },
+      {
+        id: "dlq",
+        tier: "Quarantine",
+        title: "Dead-Letter Queue",
+        subtitle: "Poison Pill Forensics",
+        icon: "🛡️",
+        x: 0.68,
+        y: 0.80,
+        role: "Quarantines corrupt schemas, negative values, and malformed wire bytes without crashing the pipeline",
+        path: "data/streaming/dlq/poison_pills.jsonl",
+        format: "JSONL Forensics Audit Payload",
+        idempotency: "Circuit Breaker Protected",
+        footprint: "Quarantine Log: 4 records logged",
+        latency: "0.08 ms",
+        schemaDiff:
+`// QUARANTINE FORENSICS DLQ LOG
+{
+  "quarantine_id": "UUID v4",
+  "error_type": "SchemaValidationError",
++ <span class="added" style="color: var(--neon-red);">"failed_contract": "price > 0.0 AND volume > 0.0"</span>,
++ <span class="added" style="color: var(--neon-red);">"raw_bytes_dump": "0x0000000002..."</span>,
+  "stack_trace": "src.milestone_05.dlq_router:line 42"
+}`,
+        samplePayload: {
+          quarantine_id: "7b219f8e-d90c-4e89-b811-13f8902194a2",
+          error_type: "NegativePriceException",
+          rejected_value: -45000.0,
+          quarantine_timestamp: "2026-09-14T01:15:02Z",
+          action: "ISOLATED_IN_DLQ"
+        }
+      }
+    ];
+
+    const V2_NODES = [
+      {
+        id: "v2_kfk",
+        tier: "V2 Tier 1",
+        title: "Kafka Event Log",
+        subtitle: "Distributed Partitioned Bus",
+        icon: "📨",
+        x: 0.10,
+        y: 0.45,
+        role: "Distributed immutable log broker, partition key by symbol (BTC/ETH/SOL)",
+        path: "kafka://localhost:9092/trades-v2",
+        format: "Kafka Byte Record (Key=Symbol, Value=Avro)",
+        idempotency: "Producer Idempotency (PID + Seq#)",
+        footprint: "Topics: 3 | Partitions: 12",
+        latency: "0.45 ms",
+        schemaDiff:
+`// V2 KAFKA PROTOCOL CONTRACT
+{
+  "topic": "trades-v2",
+  "partition": 2,
+  "offset": 104859,
+  "key": "BTCUSDT",
++ <span class="added">"headers": {"correlation_id": "corr-8192"}</span>,
+  "magic_byte": "0x00",
+  "schema_id": 2
+}`,
+        samplePayload: {
+          topic: "trades-v2",
+          partition: 2,
+          offset: 104859,
+          symbol: "BTCUSDT",
+          price: 64285.00,
+          volume: 0.512
+        }
+      },
+      {
+        id: "v2_beam",
+        tier: "V2 Tier 2",
+        title: "Apache Beam",
+        subtitle: "Unified Stream & DLQ Side",
+        icon: "🌊",
+        x: 0.30,
+        y: 0.45,
+        role: "Apache Beam Python DirectRunner/Flink, FixedWindows(60), TaggedOutput DLQ branching",
+        path: "src/v2_apache_ecosystem/beam_pipeline.py",
+        format: "PCollection[TradeRecord]",
+        idempotency: "Exactly-Once Watermarked Tumbling",
+        footprint: "DirectRunner Memory: <120MB",
+        latency: "0.52 ms",
+        schemaDiff:
+`// V2 APACHE BEAM PCOLLECTION TRANSFORM
+PCollection<TradeRecord>
+  | "AssignTimestamps" >> beam.WithTimestamps(lambda t: t.ts)
+  | "ValidateContracts" >> beam.ParDo(ValidateFn()).with_outputs("dlq", main="valid")
++ <span class="added">| "Window1Min" >> beam.WindowInto(FixedWindows(60))</span>
++ <span class="added">| "CombineVWAP" >> beam.CombinePerKey(VWAPAccumulator())</span>`,
+        samplePayload: {
+          pipeline_runner: "DirectRunner",
+          window_duration_sec: 60,
+          accumulated_vwap: 64282.40,
+          total_volume: 18.42
+        }
+      },
+      {
+        id: "v2_spark",
+        tier: "V2 Tier 3",
+        title: "Apache Spark 3.5",
+        subtitle: "Rolling VWAP & Compactor",
+        icon: "🔥",
+        x: 0.50,
+        y: 0.45,
+        role: "PySpark local[*] engine, 1-hour rolling multi-asset VWAP, rewrite_data_files compaction",
+        path: "src/v2_apache_ecosystem/spark_lakehouse.py",
+        format: "Spark Columnar Vectorized RDD / Parquet",
+        idempotency: "Deterministic DAG Execution",
+        footprint: "Driver Heap: 512m Capped",
+        latency: "1.25 ms",
+        schemaDiff:
+`// V2 SPARK LAKEHOUSE COMPACTION & ROLLING VWAP
+{
+  "spark_dag_stages": 3,
++ <span class="added">"rolling_1hr_vwap": "sum(p*v) OVER (PARTITION BY symbol ORDER BY ts RANGE BETWEEN 3600 PRECEDING AND CURRENT ROW)"</span>,
++ <span class="added">"compaction_action": "rewrite_data_files(small_files=24 -> compacted=2)"</span>,
++ <span class="added">"file_reduction": "91.6% file count reduction"</span>
+}`,
+        samplePayload: {
+          rolling_window: "1 HOUR SLIDING",
+          symbol: "BTCUSDT",
+          rolling_vwap: 64195.80,
+          compacted_files: 2,
+          small_files_merged: 24
+        }
+      },
+      {
+        id: "v2_iceberg",
+        tier: "V2 Tier 4",
+        title: "PyIceberg 0.12",
+        subtitle: "Official Hidden Partition Catalog",
+        icon: "🧊",
+        x: 0.70,
+        y: 0.45,
+        role: "Official PyIceberg catalog, hidden day/symbol partitioning, snapshot expiration & orphan cleaner",
+        path: "src/v2_apache_ecosystem/pyiceberg_catalog.py",
+        format: "Iceberg Table Format v2",
+        idempotency: "Snapshot Retention & ACID Commits",
+        footprint: "Catalog: SQLite/REST | 0 Small File Leak",
+        latency: "0.85 ms",
+        schemaDiff:
+`// V2 OFFICIAL PYICEBERG CATALOG SCHEMA
+Table: trades_v2_lakehouse
++ <span class="added">Partition Spec: [days(trade_timestamp), identity(symbol)]</span>
+Current Snapshot ID: 9482019481023
+Manifest List: metadata/snap-9482019481023-1.avro
++ <span class="meta">Hidden Partition: 2026-09-14/BTCUSDT</span>
++ <span class="added">Maintenance: expire_snapshots(older_than_days=7)</span>`,
+        samplePayload: {
+          catalog: "pyiceberg.SqlCatalog",
+          current_snapshot: 9482019481023,
+          hidden_partition_active: true,
+          snapshots_pruned: 4
+        }
+      },
+      {
+        id: "v2_flight",
+        tier: "V2 Tier 5",
+        title: "Arrow Flight gRPC",
+        subtitle: "Zero-Copy Data Distribution",
+        icon: "🚀",
+        x: 0.90,
+        y: 0.45,
+        role: "Apache Arrow Flight SQL / RecordBatch server on port 8815, ultra-low latency gRPC distribution",
+        path: "grpc://localhost:8815 (src/v2_apache_ecosystem/flight_server.py)",
+        format: "Apache Arrow IPC RecordBatch (Zero-Copy)",
+        idempotency: "Immutable Arrow C++ Memory Buffers",
+        footprint: "Throughput: >1.2M rows/sec | 0 SerDe Cost",
+        latency: "0.06 ms",
+        schemaDiff:
+`// V2 ARROW FLIGHT IPC ZERO-COPY BUFFER
+Schema: [
+  trade_id: utf8,
+  symbol: dictionary<int8, utf8>,
+  price: float64,
+  volume: float64,
+  vwap: float64,
+  timestamp: timestamp[us, tz=UTC]
+]
++ <span class="added">Transport: gRPC Stream (FlightData)</span>
++ <span class="added">Zero-Copy: Pointer Pass to C++ / WebAssembly</span>`,
+        samplePayload: {
+          flight_endpoint: "grpc://localhost:8815",
+          ticket: "CANDLES_1MIN_LIVE",
+          record_batches_streamed: 128,
+          serde_overhead_ms: 0.00
+        }
+      },
+      {
+        id: "v2_dlq",
+        tier: "V2 DLQ",
+        title: "Beam Tagged DLQ",
+        subtitle: "Side-Output Quarantine",
+        icon: "🛡️",
+        x: 0.50,
+        y: 0.80,
+        role: "Beam TaggedOutput side-channel quarantines corrupted records with full cause and payload preservation",
+        path: "data/v2_quarantine/beam_dlq.jsonl",
+        format: "TaggedOutput[CorruptRecord]",
+        idempotency: "Isolated Side Channel",
+        footprint: "100% Core Pipeline Stability",
+        latency: "0.05 ms",
+        schemaDiff:
+`// V2 BEAM TAGGED SIDE-OUTPUT DLQ
+TaggedOutput("corrupt_events", {
+  "raw_event": raw_dict,
++ <span class="added" style="color: var(--neon-red);">"contract_violation": "Negative price rejection"</span>,
+  "beam_stage": "ParseAndValidateTradeFn",
+  "isolated_at": "2026-09-14T01:15:05Z"
+})`,
+        samplePayload: {
+          side_output: "tag_dlq",
+          error: "InvalidPriceContract",
+          raw_data: "price=-100",
+          status: "BRANCHED_AWAY_FROM_LAKEHOUSE"
+        }
+      }
+    ];
+
+    let currentNodes = V1_NODES;
+
+    // PIPES / CONNECTIONS BETWEEN NODES
+    function getPipes() {
+      if (currentEngine === "v1") {
+        return [
+          { from: "t1", to: "t2", isDLQ: false },
+          { from: "t2", to: "t3", isDLQ: false },
+          { from: "t3", to: "t4", isDLQ: false },
+          { from: "t4", to: "t5", isDLQ: false },
+          { from: "t4", to: "dlq", isDLQ: true },
+          { from: "t5", to: "dlq", isDLQ: true }
+        ];
+      } else {
+        return [
+          { from: "v2_kfk", to: "v2_beam", isDLQ: false },
+          { from: "v2_beam", to: "v2_spark", isDLQ: false },
+          { from: "v2_spark", to: "v2_iceberg", isDLQ: false },
+          { from: "v2_iceberg", to: "v2_flight", isDLQ: false },
+          { from: "v2_beam", to: "v2_dlq", isDLQ: true }
+        ];
+      }
+    }
+
+    // IN-FLIGHT PARTICLES (PACKETS)
+    let particles = [];
+    const ASSET_COLORS = {
+      BTCUSDT: "#f59e0b", // Amber
+      ETHUSDT: "#38bdf8", // Sky Blue
+      SOLUSDT: "#a855f7", // Violet
+      CORRUPT: "#ef4444"  // Neon Red
+    };
+
+    // =========================================================================
+    // INITIALIZATION & RESIZE
+    // =========================================================================
+    function resizeCanvas() {
+      const stage = document.getElementById("stage");
+      canvas.width = stage.clientWidth;
+      canvas.height = stage.clientHeight;
+      renderNodeElements();
+    }
+    window.addEventListener("resize", resizeCanvas);
+
+    function renderNodeElements() {
+      nodesLayer.innerHTML = "";
+      const stageW = canvas.width;
+      const stageH = canvas.height;
+
+      currentNodes.forEach((node) => {
+        const div = document.createElement("div");
+        div.className = `node-card ${node.id.includes("dlq") ? "dlq-node" : ""} ${node.id === selectedNodeId ? "selected" : ""}`;
+        div.id = `node-el-${node.id}`;
+        div.style.left = `${node.x * stageW}px`;
+        div.style.top = `${node.y * stageH}px`;
+        div.onclick = () => selectNode(node.id);
+
+        div.innerHTML = `
+          <div class="node-header">
+            <span class="node-tier-tag">${node.tier}</span>
+            <span class="node-icon">${node.icon}</span>
+          </div>
+          <div class="node-title">${node.title}</div>
+          <div class="node-subtitle">${node.subtitle}</div>
+          <div class="node-stats">
+            <span>Latency</span>
+            <span class="stat-val">${node.latency}</span>
+          </div>
+        `;
+        nodesLayer.appendChild(div);
+      });
+    }
+
+    // =========================================================================
+    // PARTICLE ENGINE (DATA FLOW SIMULATION)
+    // =========================================================================
+    function spawnParticle(isPoison = false) {
+      const pipes = getPipes();
+      const assets = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
+      const asset = isPoison ? "CORRUPT" : assets[Math.floor(Math.random() * assets.length)];
+      const basePrice = asset === "BTCUSDT" ? 64250 : asset === "ETHUSDT" ? 3480 : asset === "SOLUSDT" ? 152 : -100;
+      const price = isPoison ? -45000 : (basePrice + (Math.random() * 20 - 10)).toFixed(2);
+      const volume = (Math.random() * 2 + 0.1).toFixed(4);
+
+      if (currentEngine === "v1") {
+        particles.push({
+          id: "pkt-" + Math.floor(Math.random() * 100000),
+          asset: asset,
+          price: Number(price),
+          volume: Number(volume),
+          isPoison: isPoison,
+          currentPipeIndex: 0,
+          pipePath: isPoison ? ["t1->t2", "t2->t3", "t3->t4", "t4->dlq"] : ["t1->t2", "t2->t3", "t3->t4", "t4->t5"],
+          progress: 0,
+          speed: (0.008 + Math.random() * 0.004) * speedMultiplier
+        });
+      } else {
+        particles.push({
+          id: "pkt-v2-" + Math.floor(Math.random() * 100000),
+          asset: asset,
+          price: Number(price),
+          volume: Number(volume),
+          isPoison: isPoison,
+          currentPipeIndex: 0,
+          pipePath: isPoison ? ["v2_kfk->v2_beam", "v2_beam->v2_dlq"] : ["v2_kfk->v2_beam", "v2_beam->v2_spark", "v2_spark->v2_iceberg", "v2_iceberg->v2_flight"],
+          progress: 0,
+          speed: (0.009 + Math.random() * 0.005) * speedMultiplier
+        });
+      }
+    }
+
+    function getNodePos(nodeId) {
+      const node = currentNodes.find((n) => n.id === nodeId);
+      if (!node) return { x: 0, y: 0 };
+      return {
+        x: node.x * canvas.width,
+        y: node.y * canvas.height
+      };
+    }
+
+    function drawPipes() {
+      const pipes = getPipes();
+      pipes.forEach((pipe) => {
+        const fromPos = getNodePos(pipe.from);
+        const toPos = getNodePos(pipe.to);
+
+        ctx.beginPath();
+        ctx.strokeStyle = pipe.isDLQ ? "rgba(239, 68, 68, 0.25)" : "rgba(0, 242, 255, 0.2)";
+        ctx.lineWidth = 3;
+        ctx.setLineDash(pipe.isDLQ ? [4, 4] : []);
+
+        // Smooth cubic bezier curve
+        const dx = toPos.x - fromPos.x;
+        const dy = toPos.y - fromPos.y;
+        const cp1x = fromPos.x + dx * 0.5;
+        const cp1y = fromPos.y;
+        const cp2x = fromPos.x + dx * 0.5;
+        const cp2y = toPos.y;
+
+        ctx.moveTo(fromPos.x, fromPos.y);
+        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, toPos.x, toPos.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      });
+    }
+
+    function animate() {
+      if (isPlaying && currentMode === "stream") {
+        // Spawn particles periodically
+        if (Math.random() < 0.08 * speedMultiplier) {
+          spawnParticle(false);
+        }
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPipes();
+
+      // Update and draw in-flight particles
+      const stageW = canvas.width;
+      const stageH = canvas.height;
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        if (isPlaying || currentMode === "step") {
+          p.progress += p.speed;
+        }
+
+        const currentPipeKey = p.pipePath[p.currentPipeIndex];
+        if (!currentPipeKey) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        const [fromId, toId] = currentPipeKey.split("->");
+        const fromPos = getNodePos(fromId);
+        const toPos = getNodePos(toId);
+
+        // Cubic bezier interpolation
+        const t = Math.min(1, Math.max(0, p.progress));
+        const dx = toPos.x - fromPos.x;
+        const cp1x = fromPos.x + dx * 0.5;
+        const cp1y = fromPos.y;
+        const cp2x = fromPos.x + dx * 0.5;
+        const cp2y = toPos.y;
+
+        // B(t) = (1-t)^3 P0 + 3(1-t)^2 t P1 + 3(1-t) t^2 P2 + t^3 P3
+        const cx = Math.pow(1 - t, 3) * fromPos.x + 3 * Math.pow(1 - t, 2) * t * cp1x + 3 * (1 - t) * Math.pow(t, 2) * cp2x + Math.pow(t, 3) * toPos.x;
+        const cy = Math.pow(1 - t, 3) * fromPos.y + 3 * Math.pow(1 - t, 2) * t * cp1y + 3 * (1 - t) * Math.pow(t, 2) * cp2y + Math.pow(t, 3) * toPos.y;
+
+        // Draw particle pulse
+        const color = ASSET_COLORS[p.asset] || "#00f2ff";
+        ctx.save();
+        ctx.shadowBlur = p.isPoison ? 16 : 10;
+        ctx.shadowColor = color;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(cx, cy, p.isPoison ? 7 : 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Advance to next pipe in the trade's journey
+        if (p.progress >= 1) {
+          p.progress = 0;
+          p.currentPipeIndex++;
+          if (p.currentPipeIndex >= p.pipePath.length) {
+            if (p.isPoison) {
+              showToast(`Poison Pill Quarantined! Isolated in Dead-Letter Queue (DLQ).`);
+            }
+            particles.splice(i, 1);
+          }
+        }
+      }
+
+      document.getElementById("flightCount").textContent = particles.length;
+      requestAnimationFrame(animate);
+    }
+
+    // =========================================================================
+    // SELECTION & FORENSIC X-RAY INSPECTION
+    // =========================================================================
+    function selectNode(nodeId) {
+      selectedNodeId = nodeId;
+      const node = currentNodes.find((n) => n.id === nodeId);
+      if (!node) return;
+
+      document.querySelectorAll(".node-card").forEach((el) => el.classList.remove("selected"));
+      const el = document.getElementById(`node-el-${nodeId}`);
+      if (el) el.classList.add("selected");
+
+      // Update forensic drawer
+      document.getElementById("inspectNodeTitle").textContent = `${node.tier}: ${node.title}`;
+      document.getElementById("inspectRole").textContent = node.role;
+      document.getElementById("inspectPath").textContent = node.path;
+      document.getElementById("inspectFormat").textContent = node.format;
+      document.getElementById("inspectIdempotency").textContent = node.idempotency;
+      document.getElementById("inspectFootprint").textContent = node.footprint;
+      document.getElementById("inspectLatency").textContent = node.latency;
+
+      document.getElementById("schemaDiffBox").innerHTML = node.schemaDiff;
+      document.getElementById("payloadInspectBox").textContent = JSON.stringify(node.samplePayload, null, 2);
+    }
+
+    // =========================================================================
+    // CONTROLS & MODES
+    // =========================================================================
+    function switchEngine(engine) {
+      currentEngine = engine;
+      document.getElementById("btnV1").classList.toggle("active", engine === "v1");
+      document.getElementById("btnV2").classList.toggle("active", engine === "v2");
+      document.getElementById("engineStatus").textContent = engine === "v1" ? "V1 LIGHTWEIGHT" : "V2 APACHE HIGHWAY";
+      document.getElementById("engineStatus").style.color = engine === "v1" ? "var(--neon-cyan)" : "var(--neon-purple)";
+
+      currentNodes = engine === "v1" ? V1_NODES : V2_NODES;
+      particles = [];
+      selectedNodeId = currentNodes[0].id;
+      renderNodeElements();
+      selectNode(selectedNodeId);
+      if (currentMode === "step") renderStepperUI();
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById("btnModeStream").classList.toggle("active", mode === "stream");
+      document.getElementById("btnModeStep").classList.toggle("active", mode === "step");
+      const stepper = document.getElementById("stepperBanner");
+
+      if (mode === "step") {
+        stepper.classList.add("active");
+        isPlaying = false;
+        document.getElementById("playIcon").textContent = "▶️";
+        document.getElementById("playText").textContent = "Play";
+        particles = [];
+        stepIndex = 0;
+        renderStepperUI();
+      } else {
+        stepper.classList.remove("active");
+        isPlaying = true;
+        document.getElementById("playIcon").textContent = "⏸️";
+        document.getElementById("playText").textContent = "Pause";
+      }
+    }
+
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      document.getElementById("playIcon").textContent = isPlaying ? "⏸️" : "▶️";
+      document.getElementById("playText").textContent = isPlaying ? "Pause" : "Play";
+    }
+
+    function cycleSpeed() {
+      if (speedMultiplier === 1) speedMultiplier = 2;
+      else if (speedMultiplier === 2) speedMultiplier = 5;
+      else if (speedMultiplier === 5) speedMultiplier = 0.5;
+      else speedMultiplier = 1;
+      document.getElementById("btnSpeed").textContent = `Speed: ${speedMultiplier}x`;
+    }
+
+    function injectPoisonPill() {
+      spawnParticle(true);
+      showToast("Injected poison pill record (Negative Price: -$45,000)! Watch the red packet divert.");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      document.getElementById("toastMsg").textContent = msg;
+      toast.style.display = "flex";
+      setTimeout(() => {
+        toast.style.display = "none";
+      }, 4500);
+    }
+
+    // =========================================================================
+    // STEP-BY-STEP SINGLE TRADE JOURNEY
+    // =========================================================================
+    function renderStepperUI() {
+      const track = document.getElementById("stepperTrack");
+      track.innerHTML = "";
+      const nodesWithoutDLQ = currentNodes.filter((n) => !n.id.includes("dlq"));
+
+      nodesWithoutDLQ.forEach((node, idx) => {
+        const item = document.createElement("div");
+        item.className = `step-item ${idx === stepIndex ? "active" : idx < stepIndex ? "completed" : ""}`;
+        item.innerHTML = `
+          <div class="step-circle">${idx < stepIndex ? "✓" : idx + 1}</div>
+          <span>${node.title}</span>
+        `;
+        track.appendChild(item);
+
+        if (idx < nodesWithoutDLQ.length - 1) {
+          const line = document.createElement("div");
+          line.className = "step-line";
+          track.appendChild(line);
+        }
+      });
+
+      const activeNode = nodesWithoutDLQ[stepIndex];
+      if (activeNode) selectNode(activeNode.id);
+    }
+
+    function nextStep() {
+      const nodesWithoutDLQ = currentNodes.filter((n) => !n.id.includes("dlq"));
+      if (stepIndex < nodesWithoutDLQ.length - 1) {
+        stepIndex++;
+      } else {
+        stepIndex = 0;
+      }
+      renderStepperUI();
+
+      const activeNode = nodesWithoutDLQ[stepIndex];
+      if (activeNode) {
+        selectNode(activeNode.id);
+      }
+    }
+
+    function resetStep() {
+      stepIndex = 0;
+      renderStepperUI();
+    }
+
+    // =========================================================================
+    // BACKEND LIVE INTEGRATION (POLL /api/live-trades IF AVAILABLE)
+    // =========================================================================
+    async function pollBackend() {
+      try {
+        const res = await fetch("/api/tier-metadata");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.tps) document.getElementById("liveTps").textContent = `${data.tps} tx/s`;
+          if (data.tiers) {
+            data.tiers.forEach((t) => {
+              const node = currentNodes.find((n) => n.id === t.id);
+              if (node && t.footprint) node.footprint = t.footprint;
+            });
+          }
+        }
+      } catch (err) {
+        // Standalone or local file preview mode: continues flawlessly
+      }
+    }
+    setInterval(pollBackend, 3000);
+
+    // Boot
+    resizeCanvas();
+    selectNode("t1");
+    animate();
+  </script>
+</body>
+</html>

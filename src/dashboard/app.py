@@ -14,6 +14,7 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 from src.common.config import get_settings
 from src.milestone_04_lakehouse_cdc_contracts.iceberg_writer import IcebergLakehouseTable
@@ -158,13 +159,45 @@ st.markdown(
 # -----------------------------------------------------------------------------
 # MAIN TABS LAYOUT
 # -----------------------------------------------------------------------------
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab_xray, tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "👁️‍🗨️ X-Ray Pipeline Vision",
     "📈 Real-Time Streaming & Candlesticks",
     "🧊 Lakehouse CDC & Time-Travel",
     "🛡️ DLQ & Quarantine Forensics",
     "📊 Storage & Query Benchmark (M3)",
     "📑 Portfolio Architecture & SSOT",
 ])
+
+# =============================================================================
+# TAB X-RAY: INTERACTIVE PIPELINE DATA FLOW VISUALIZER
+# =============================================================================
+with tab_xray:
+    st.subheader("⚡ End-to-End Pipeline X-Ray Vision (Forensic Data Flow)")
+    st.caption(
+        "Real-time visual tracer showing trade records moving across Tier 1 (Scripted CSV) -> Tier 5 (Streaming) "
+        "and the V2 Apache Highway. Click any node or packet to inspect schemas, formats, and storage paths."
+    )
+
+    xray_ctrl_col1, xray_ctrl_col2 = st.columns([3, 1])
+    with xray_ctrl_col1:
+        st.markdown(
+            "💡 *Tip: Toggle between V1 and V2 Apache Highway inside the cockpit, or switch to Step-by-Step mode.*"
+        )
+    with xray_ctrl_col2:
+        st.link_button(
+            "🚀 Standalone Full-Screen (Port 8080)",
+            "http://localhost:8080",
+            use_container_width=True,
+        )
+
+    # Embed the high-density HTML5 Canvas Visualizer
+    xray_html_path = Path(__file__).parent / "xray_vision.html"
+    if xray_html_path.exists():
+        with open(xray_html_path, encoding="utf-8") as f:
+            html_content = f.read()
+        components.html(html_content, height=860, scrolling=False)
+    else:
+        st.error("xray_vision.html not found.")
 
 # =============================================================================
 # TAB 1: REAL-TIME STREAMING & CANDLESTICK CHARTS

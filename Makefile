@@ -58,6 +58,12 @@ run-m5-backfill:
 run-dashboard:
 	streamlit run src/dashboard/app.py --server.port 8501 --server.headless true
 
+run-xray:
+	python -m src.dashboard.xray_server
+
+run-v2:
+	python -m src.v2_apache_ecosystem.run_v2_pipeline
+
 clean:
 	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov .coverage
 	rm -rf data/*.duckdb*
