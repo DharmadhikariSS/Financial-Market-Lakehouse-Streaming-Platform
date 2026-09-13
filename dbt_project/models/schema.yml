@@ -1,0 +1,81 @@
+version: 2
+
+models:
+  - name: stg_market_trades
+    description: "Raw staged market trades extracted directly from partitioned Parquet files."
+    columns:
+      - name: trade_id
+        description: "Source exchange unique trade execution identifier."
+        tests:
+          - not_null
+      - name: symbol
+        description: "Standardized trading pair ticker (e.g. BTCUSDT)."
+        tests:
+          - not_null
+      - name: price
+        description: "Execution unit price."
+        tests:
+          - not_null
+      - name: quantity
+        description: "Executed asset quantity."
+        tests:
+          - not_null
+
+  - name: dim_assets
+    description: "Conformed dimension table representing tradable cryptocurrency assets."
+    columns:
+      - name: asset_key
+        description: "Surrogate primary key (MD5 hash of symbol)."
+        tests:
+          - unique
+          - not_null
+      - name: symbol
+        description: "Natural key ticker symbol."
+        tests:
+          - unique
+          - not_null
+      - name: quote_asset
+        description: "Denominated quote currency."
+        tests:
+          - accepted_values:
+              values: ['USDT', 'USDC', 'BTC', 'UNKNOWN']
+
+  - name: fct_trades
+    description: "Central star-schema fact table recording atomic market trade executions."
+    columns:
+      - name: trade_surrogate_key
+        description: "Surrogate primary key MD5(symbol-trade_id)."
+        tests:
+          - unique
+          - not_null
+      - name: asset_key
+        description: "Foreign key referencing dim_assets."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_assets')
+              field: asset_key
+      - name: price
+        description: "Execution price."
+        tests:
+          - not_null
+      - name: quantity
+        description: "Executed quantity."
+        tests:
+          - not_null
+
+  - name: agg_daily_market_metrics
+    description: "Aggregated analytical mart computing daily volume and Volume Weighted Average Price (VWAP)."
+    columns:
+      - name: symbol
+        description: "Trading symbol."
+        tests:
+          - not_null
+      - name: trade_date
+        description: "Calendar date of execution."
+        tests:
+          - not_null
+      - name: vwap
+        description: "Volume Weighted Average Price."
+        tests:
+          - not_null

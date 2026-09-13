@@ -1,0 +1,21 @@
+{
+  "name": "market-postgres-cdc-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+    "plugin.name": "pgoutput",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "postgres",
+    "database.password": "postgres_secure_pass",
+    "database.dbname": "market_db",
+    "topic.prefix": "market_server",
+    "table.include.list": "core.fact_trades,core.dim_symbols",
+    "publication.autocreate.mode": "filtered",
+    "tombstones.on.delete": "false",
+    "decimal.handling.mode": "double",
+    "time.precision.mode": "connect",
+    "slot.name": "debezium_market_slot",
+    "slot.drop.on.stop": "false"
+  }
+}

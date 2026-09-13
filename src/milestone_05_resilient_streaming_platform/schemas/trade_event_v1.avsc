@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "TradeEvent",
+  "namespace": "io.market.ledger",
+  "doc": "Base market trade event schema v1 (Strict)",
+  "fields": [
+    {"name": "trade_id", "type": "long", "doc": "Unique exchange transaction identifier"},
+    {"name": "symbol", "type": "string", "doc": "Trading pair instrument symbol (e.g., BTCUSDT)"},
+    {"name": "price", "type": "double", "doc": "Execution price per unit"},
+    {"name": "quantity", "type": "double", "doc": "Execution volume in base asset units"},
+    {"name": "quote_quantity", "type": "double", "doc": "Total transacted value in quote asset units"},
+    {"name": "trade_timestamp", "type": "long", "doc": "Event timestamp in UTC epoch milliseconds"},
+    {"name": "is_buyer_maker", "type": "boolean", "doc": "True if buyer placed the maker order"}
+  ]
+}

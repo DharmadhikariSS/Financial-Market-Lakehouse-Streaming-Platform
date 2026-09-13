@@ -1,0 +1,140 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "id": 1,
+      "title": "Ingestion Throughput & Latency",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"axisCenteredZero": false, "drawStyle": "line", "lineInterpolation": "smooth"},
+          "unit": "reqps"
+        }
+      },
+      "gridPos": {"h": 7, "w": 8, "x": 0, "y": 1},
+      "id": 2,
+      "title": "Streaming Ingestion Rate (msg/s)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(streaming_events_total[30s])) by (symbol)",
+          "legendFormat": "{{symbol}}"
+        }
+      ]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 5},
+              {"color": "red", "value": 15}
+            ]
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": {"h": 7, "w": 8, "x": 8, "y": 1},
+      "id": 3,
+      "title": "Watermark Bounded Lag",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "streaming_watermark_lag_seconds",
+          "legendFormat": "Watermark Delay (s)"
+        }
+      ]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "unit": "short"
+        }
+      },
+      "gridPos": {"h": 7, "w": 8, "x": 16, "y": 1},
+      "id": 4,
+      "title": "Consumer Group Lag (Records)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "streaming_consumer_lag_records",
+          "legendFormat": "Unconsumed Lag"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 8},
+      "id": 5,
+      "title": "Fault Tolerance & DLQ Circuit Breakers",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"drawStyle": "bars"},
+          "unit": "short"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 9},
+      "id": 6,
+      "title": "DLQ Poison-Pill Quarantine Incidents",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(streaming_dlq_errors_total) by (error_code)",
+          "legendFormat": "{{error_code}}"
+        }
+      ]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "unit": "short"
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 9},
+      "id": 7,
+      "title": "Materialized 1-Minute Candle Windows",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "streaming_windows_computed_total",
+          "legendFormat": "Closed Windows"
+        }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["streaming", "resilience", "crypto"],
+  "time": {"from": "now-15m", "to": "now"},
+  "title": "Streaming Engine Resilience & Health Dashboard",
+  "uid": "streaming_resilience_dashboard",
+  "version": 1
+}

@@ -1,0 +1,42 @@
+name: Continuous Integration & Reliability Matrix
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+
+      - name: Lint and Code Formatting Check (Ruff)
+        run: |
+          python -m ruff check .
+          python -m ruff format --check .
+
+      - name: Type Safety Assertion (Mypy)
+        run: |
+          python -m mypy src/ tests/
+
+      - name: Run Test Suite (Pytest)
+        run: |
+          python -m pytest -v --cov=src tests/

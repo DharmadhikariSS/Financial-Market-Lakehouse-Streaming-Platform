@@ -1,0 +1,8 @@
+market_duckdb:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "../data/lakehouse/warehouse.duckdb"
+      schema: main
+      threads: 4
