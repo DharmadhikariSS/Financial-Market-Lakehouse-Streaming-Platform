@@ -80,10 +80,26 @@ class DeadLetterQueueRouter:
                     "color": 15158332,  # Crimson Red
                     "timestamp": dlq_entry["failed_at_utc"],
                     "fields": [
-                        {"name": "Topic", "value": f"`{dlq_entry['original_topic']}`", "inline": True},
-                        {"name": "Schema ID", "value": str(dlq_entry.get("schema_id") or "N/A"), "inline": True},
-                        {"name": "Payload Size", "value": f"{dlq_entry['raw_payload_len']} bytes", "inline": True},
-                        {"name": "Error Details", "value": f"```{dlq_entry['error_message']}```", "inline": False},
+                        {
+                            "name": "Topic",
+                            "value": f"`{dlq_entry['original_topic']}`",
+                            "inline": True,
+                        },
+                        {
+                            "name": "Schema ID",
+                            "value": str(dlq_entry.get("schema_id") or "N/A"),
+                            "inline": True,
+                        },
+                        {
+                            "name": "Payload Size",
+                            "value": f"{dlq_entry['raw_payload_len']} bytes",
+                            "inline": True,
+                        },
+                        {
+                            "name": "Error Details",
+                            "value": f"```{dlq_entry['error_message']}```",
+                            "inline": False,
+                        },
                     ],
                     "footer": {
                         "text": "Data Engineering Platform | DLQ Circuit Breaker",

@@ -34,6 +34,7 @@ def test_debezium_envelope_parser() -> None:
     assert event.trade_id == 501
 
     # Test Update envelope
+    assert isinstance(create_msg["after"], dict)
     update_msg = {
         "before": create_msg["after"],
         "after": {**create_msg["after"], "price": 65500.0},

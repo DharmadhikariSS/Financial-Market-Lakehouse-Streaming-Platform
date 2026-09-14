@@ -25,13 +25,15 @@ from pyspark.sql.window import Window
 
 logger = logging.getLogger("SparkLakehouse")
 
-TRADE_SCHEMA = StructType([
-    StructField("trade_id", StringType(), False),
-    StructField("symbol", StringType(), False),
-    StructField("price", DoubleType(), False),
-    StructField("volume", DoubleType(), False),
-    StructField("ts_epoch", LongType(), False),
-])
+TRADE_SCHEMA = StructType(
+    [
+        StructField("trade_id", StringType(), False),
+        StructField("symbol", StringType(), False),
+        StructField("price", DoubleType(), False),
+        StructField("volume", DoubleType(), False),
+        StructField("ts_epoch", LongType(), False),
+    ]
+)
 
 
 def get_spark_session(app_name: str = "V2SparkLakehouseEngine") -> SparkSession:
@@ -53,11 +55,7 @@ def get_spark_session(app_name: str = "V2SparkLakehouseEngine") -> SparkSession:
 def compute_rolling_vwap(spark: SparkSession, df: DataFrame) -> DataFrame:
     """Compute 1-hour (3600-second) rolling VWAP per asset symbol using Spark Window."""
     # Rolling 1-hour window specification (range of 3600 seconds preceding current trade)
-    w_1hr = (
-        Window.partitionBy("symbol")
-        .orderBy(F.col("ts_epoch"))
-        .rangeBetween(-3600, 0)
-    )
+    w_1hr = Window.partitionBy("symbol").orderBy(F.col("ts_epoch")).rangeBetween(-3600, 0)
 
     enriched = (
         df.withColumn("notional", F.col("price") * F.col("volume"))
@@ -116,9 +114,7 @@ def compact_lakehouse_files(
     files_after = len(compacted_files)
 
     reduction_pct = (
-        round(((files_before - files_after) / files_before) * 100, 2)
-        if files_before > 0
-        else 0.0
+        round(((files_before - files_after) / files_before) * 100, 2) if files_before > 0 else 0.0
     )
 
     return {
@@ -143,11 +139,41 @@ def run_spark_lakehouse_pipeline(
         if not trades:
             base_ts = 1700000000
             trades = [
-                {"trade_id": "T1", "symbol": "BTCUSDT", "price": 60000.0, "volume": 1.5, "ts_epoch": base_ts},
-                {"trade_id": "T2", "symbol": "BTCUSDT", "price": 60500.0, "volume": 2.0, "ts_epoch": base_ts + 300},
-                {"trade_id": "T3", "symbol": "BTCUSDT", "price": 61000.0, "volume": 1.0, "ts_epoch": base_ts + 1200},
-                {"trade_id": "T4", "symbol": "ETHUSDT", "price": 3200.0, "volume": 10.0, "ts_epoch": base_ts + 100},
-                {"trade_id": "T5", "symbol": "ETHUSDT", "price": 3250.0, "volume": 8.0, "ts_epoch": base_ts + 1500},
+                {
+                    "trade_id": "T1",
+                    "symbol": "BTCUSDT",
+                    "price": 60000.0,
+                    "volume": 1.5,
+                    "ts_epoch": base_ts,
+                },
+                {
+                    "trade_id": "T2",
+                    "symbol": "BTCUSDT",
+                    "price": 60500.0,
+                    "volume": 2.0,
+                    "ts_epoch": base_ts + 300,
+                },
+                {
+                    "trade_id": "T3",
+                    "symbol": "BTCUSDT",
+                    "price": 61000.0,
+                    "volume": 1.0,
+                    "ts_epoch": base_ts + 1200,
+                },
+                {
+                    "trade_id": "T4",
+                    "symbol": "ETHUSDT",
+                    "price": 3200.0,
+                    "volume": 10.0,
+                    "ts_epoch": base_ts + 100,
+                },
+                {
+                    "trade_id": "T5",
+                    "symbol": "ETHUSDT",
+                    "price": 3250.0,
+                    "volume": 8.0,
+                    "ts_epoch": base_ts + 1500,
+                },
             ]
 
         rdd_data = [
@@ -175,4 +201,6 @@ if __name__ == "__main__":
     print("PySpark Execution Completed successfully!")
     print(f"Processed: {out['trades_processed']} trades.")
     for r in out["sample_vwap"]:
-        print(f"[{r['symbol']}] Price: ${r['price']} | Vol: {r['volume']} | Rolling 1-Hr VWAP: ${r['rolling_1hr_vwap']}")
+        print(
+            f"[{r['symbol']}] Price: ${r['price']} | Vol: {r['volume']} | Rolling 1-Hr VWAP: ${r['rolling_1hr_vwap']}"
+        )

@@ -109,27 +109,34 @@ class LiveStreamIngestor:
                     total_ingested += 1
 
                 # 3. Buffer row for batched DuckDB insert
-                dt_obj = datetime.fromtimestamp(trade_dict["trade_timestamp"] / 1000.0, tz=UTC).isoformat()
-                trade_rows.append((
-                    trade_dict["trade_id"],
-                    trade_dict["symbol"],
-                    trade_dict["price"],
-                    trade_dict["quantity"],
-                    trade_dict["quote_quantity"],
-                    dt_obj,
-                    trade_dict["is_buyer_maker"],
-                    trade_dict["trade_type"],
-                    now_utc,
-                ))
+                dt_obj = datetime.fromtimestamp(
+                    float(str(trade_dict["trade_timestamp"])) / 1000.0, tz=UTC
+                ).isoformat()
+                trade_rows.append(
+                    (
+                        trade_dict["trade_id"],
+                        trade_dict["symbol"],
+                        trade_dict["price"],
+                        trade_dict["quantity"],
+                        trade_dict["quote_quantity"],
+                        dt_obj,
+                        trade_dict["is_buyer_maker"],
+                        trade_dict["trade_type"],
+                        now_utc,
+                    )
+                )
 
         # Single batched transaction to prevent Windows file locking
         if trade_rows:
             with duckdb.connect(str(self.db_path)) as conn:
-                conn.executemany("""
+                conn.executemany(
+                    """
                 INSERT OR REPLACE INTO realtime_raw_trades VALUES (
                     ?, ?, ?, ?, ?, ?, ?, ?, ?
                 );
-                """, trade_rows)
+                """,
+                    trade_rows,
+                )
 
         # Flush active windows to persist updated candles
         self.processor.flush()
@@ -141,7 +148,9 @@ class LiveStreamIngestor:
             "timestamp": now_utc,
         }
 
-    def seed_historical_klines(self, symbol: str = "BTCUSDT", interval: str = "1m", limit: int = 60) -> int:
+    def seed_historical_klines(
+        self, symbol: str = "BTCUSDT", interval: str = "1m", limit: int = 60
+    ) -> int:
         """Fetch authentic 1-minute historical candles from Binance and persist to DuckDB mart."""
         url = f"https://api.binance.com/api/v3/klines?symbol={symbol.upper()}&interval={interval}&limit={limit}"
         try:
@@ -171,28 +180,33 @@ class LiveStreamIngestor:
                 dt_start = datetime.fromtimestamp(open_ts / 1000.0, tz=UTC).isoformat()
                 dt_end = datetime.fromtimestamp(close_ts / 1000.0, tz=UTC).isoformat()
 
-                rows.append((
-                    symbol.upper(),
-                    dt_start,
-                    dt_end,
-                    open_p,
-                    high_p,
-                    low_p,
-                    close_p,
-                    round(base_vol, 4),
-                    round(quote_vol, 2),
-                    round(vwap, 2),
-                    trade_cnt,
-                    round(taker_ratio, 2),
-                    now_utc,
-                ))
+                rows.append(
+                    (
+                        symbol.upper(),
+                        dt_start,
+                        dt_end,
+                        open_p,
+                        high_p,
+                        low_p,
+                        close_p,
+                        round(base_vol, 4),
+                        round(quote_vol, 2),
+                        round(vwap, 2),
+                        trade_cnt,
+                        round(taker_ratio, 2),
+                        now_utc,
+                    )
+                )
 
             with duckdb.connect(str(self.db_path)) as conn:
-                conn.executemany("""
+                conn.executemany(
+                    """
                 INSERT OR REPLACE INTO realtime_market_candles VALUES (
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                 );
-                """, rows)
+                """,
+                    rows,
+                )
             logger.info(f"Successfully seeded {len(rows)} authentic klines for {symbol}.")
             return len(rows)
         except Exception as exc:
@@ -217,10 +231,18 @@ class LiveStreamIngestor:
         except Exception as exc:
             logger.warning("Falling back to synthetic order book: %s", exc)
             # Realistic synthetic fallback with smooth exponential wall
-            base_price = 77600.0 if symbol == "BTCUSDT" else 2515.0 if symbol == "ETHUSDT" else 101.5
+            base_price = (
+                77600.0 if symbol == "BTCUSDT" else 2515.0 if symbol == "ETHUSDT" else 101.5
+            )
             step = 1.0 if symbol == "BTCUSDT" else 0.1 if symbol == "ETHUSDT" else 0.02
-            bids = [[round(base_price - i * step, 2), round(0.2 + (i ** 1.3) * 0.05, 4)] for i in range(1, limit + 1)]
-            asks = [[round(base_price + i * step, 2), round(0.2 + (i ** 1.3) * 0.05, 4)] for i in range(1, limit + 1)]
+            bids = [
+                [round(base_price - i * step, 2), round(0.2 + (i**1.3) * 0.05, 4)]
+                for i in range(1, limit + 1)
+            ]
+            asks = [
+                [round(base_price + i * step, 2), round(0.2 + (i**1.3) * 0.05, 4)]
+                for i in range(1, limit + 1)
+            ]
             return {
                 "symbol": symbol.upper(),
                 "bids": bids,

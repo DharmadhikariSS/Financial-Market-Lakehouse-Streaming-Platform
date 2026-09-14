@@ -44,8 +44,10 @@ class StreamProducer:
         self._trade_seq += 1
         base_price = BASE_PRICES.get(symbol, 100.0)
         # Add random walk +/- 0.5%
-        price = price_override if price_override is not None else round(
-            base_price * (1.0 + random.uniform(-0.005, 0.005)), 2
+        price = (
+            price_override
+            if price_override is not None
+            else round(base_price * (1.0 + random.uniform(-0.005, 0.005)), 2)
         )
         quantity = round(random.uniform(0.01, 2.5), 4)
         quote_quantity = round(price * quantity, 2)
@@ -97,9 +99,7 @@ class StreamProducer:
             )
 
             schema_id = 2 if schema_version == 2 else 1
-            payload_bytes = self.registry.serialize(
-                self.subject, trade, schema_id=schema_id
-            )
+            payload_bytes = self.registry.serialize(self.subject, trade, schema_id=schema_id)
 
             messages.append(
                 {
@@ -151,11 +151,12 @@ class StreamProducer:
         for k in range(poison_pill_count):
             if k == 0:
                 # Malformed Magic Byte
-                bad_bytes = b"\xFF\x00\x00\x00\x01\x10\x20\x30\x40"
+                bad_bytes = b"\xff\x00\x00\x00\x01\x10\x20\x30\x40"
                 error_desc = "INVALID_MAGIC_BYTE"
             elif k == 1:
                 # Non-existent schema ID 9999
                 import struct
+
                 bad_bytes = b"\x00" + struct.pack(">I", 9999) + b"\x01\x02\x03\x04"
                 error_desc = "UNKNOWN_SCHEMA_ID"
             elif k == 2:
@@ -175,7 +176,8 @@ class StreamProducer:
             else:
                 # Corrupted binary junk in Avro body
                 import struct
-                bad_bytes = b"\x00" + struct.pack(">I", 1) + b"\xDE\xAD\xBE\xEF\x99\x88"
+
+                bad_bytes = b"\x00" + struct.pack(">I", 1) + b"\xde\xad\xbe\xef\x99\x88"
                 error_desc = "AVRO_DESERIALIZATION_CORRUPTION"
 
             messages.append(

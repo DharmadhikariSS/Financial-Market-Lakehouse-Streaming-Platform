@@ -206,18 +206,22 @@ class LakehouseTransformer:
             """)
 
             # 8. Assertions & Audit Quality Gates
-            dim_count = conn.execute("SELECT COUNT(*) FROM marts.dim_assets;").fetchone()[0]
-            fct_count = conn.execute("SELECT COUNT(*) FROM marts.fct_trades;").fetchone()[0]
-            agg_count = conn.execute(
+            dim_row = conn.execute("SELECT COUNT(*) FROM marts.dim_assets;").fetchone()
+            dim_count = dim_row[0] if dim_row else 0
+            fct_row = conn.execute("SELECT COUNT(*) FROM marts.fct_trades;").fetchone()
+            fct_count = fct_row[0] if fct_row else 0
+            agg_row = conn.execute(
                 "SELECT COUNT(*) FROM marts.agg_daily_market_metrics;"
-            ).fetchone()[0]
+            ).fetchone()
+            agg_count = agg_row[0] if agg_row else 0
 
             # Referential integrity test
-            orphan_count = conn.execute("""
+            orphan_row = conn.execute("""
             SELECT COUNT(*) FROM marts.fct_trades f
             LEFT JOIN marts.dim_assets a ON f.asset_key = a.asset_key
             WHERE a.asset_key IS NULL;
-            """).fetchone()[0]
+            """).fetchone()
+            orphan_count = orphan_row[0] if orphan_row else 0
             if orphan_count > 0:
                 raise ValueError(
                     f"Referential integrity failure: {orphan_count} orphan trades found."

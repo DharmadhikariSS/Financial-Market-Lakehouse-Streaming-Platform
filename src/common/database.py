@@ -36,15 +36,15 @@ class DatabaseManager:
     def get_connection(self) -> Generator[Any, None, None]:
         """Context manager yielding an active database connection."""
         if self.engine_type == "duckdb":
-            conn = duckdb.connect(str(settings.resolved_duckdb_path))
+            duck_conn = duckdb.connect(str(settings.resolved_duckdb_path))
             try:
-                yield conn
+                yield duck_conn
             finally:
-                conn.close()
+                duck_conn.close()
         elif self.engine_type == "postgres":
             engine = self.get_pg_engine()
-            with engine.connect() as conn:
-                yield conn
+            with engine.connect() as pg_conn:
+                yield pg_conn
         else:
             raise ValueError(f"Unsupported database engine: {self.engine_type}")
 

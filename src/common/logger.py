@@ -19,6 +19,7 @@ def get_logger(name: str, level: str = "INFO") -> logging.Logger:
 
     logger.setLevel(getattr(logging, level.upper(), logging.INFO))
 
+    handler: logging.Handler
     if HAS_RICH:
         handler = RichHandler(
             rich_tracebacks=True,

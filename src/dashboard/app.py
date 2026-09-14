@@ -107,7 +107,10 @@ with st.sidebar:
     )
     is_dark = "Dark" in theme_choice
 
-    st.markdown("<div><span class='live-pulse'></span><b>STREAM FEED: LIVE</b></div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div><span class='live-pulse'></span><b>STREAM FEED: LIVE</b></div>",
+        unsafe_allow_html=True,
+    )
     st.caption("5-Tier Financial Market Ledger")
 
     st.markdown("---")
@@ -128,8 +131,12 @@ with st.sidebar:
 
     if st.button("🚀 Trigger Stress Batch (M5)", use_container_width=True):
         with st.spinner("Executing streaming engine with out-of-order records & DLQ..."):
-            res = run_streaming_pipeline(total_events=120, out_of_order_count=8, poison_pill_count=4)
-            st.success(f"Processed {res['successfully_processed']} events! Materialized {res['materialized_candles_count']} candles.")
+            res = run_streaming_pipeline(
+                total_events=120, out_of_order_count=8, poison_pill_count=4
+            )
+            st.success(
+                f"Processed {res['successfully_processed']} events! Materialized {res['materialized_candles_count']} candles."
+            )
             st.rerun()
 
     if st.button("🔄 Trigger Backfill Replay", use_container_width=True):
@@ -154,7 +161,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown(
         f"""
-        <div style='text-align: center; color: {'#8892b0' if is_dark else '#64748b'}; font-size: 0.8rem;'>
+        <div style='text-align: center; color: {"#8892b0" if is_dark else "#64748b"}; font-size: 0.8rem;'>
             Zero Cloud Spend Guarantee ($0.00)<br>
             Strict Idempotency & ACID Semantics<br>
             <b>Staff Data Engineer Portfolio</b>
@@ -226,7 +233,7 @@ st.markdown(
         border: 1px solid {theme_border} !important;
         border-radius: 8px;
         padding: 10px 14px;
-        box-shadow: {'0 2px 8px rgba(0,0,0,0.04)' if not is_dark else 'none'};
+        box-shadow: {"0 2px 8px rgba(0,0,0,0.04)" if not is_dark else "none"};
     }}
     div[data-testid="stMetric"] label {{
         color: {theme_subtext} !important;
@@ -242,11 +249,11 @@ st.markdown(
         font-size: 0.85rem;
         margin-right: 8px;
     }}
-    .badge-green {{ background-color: rgba(16, 185, 129, 0.15); color: {'#10b981' if is_dark else '#059669'}; border: 1px solid {'#10b981' if is_dark else '#059669'}; }}
-    .badge-blue {{ background-color: rgba(2, 132, 199, 0.15); color: {'#38bdf8' if is_dark else '#0284c7'}; border: 1px solid {'#38bdf8' if is_dark else '#0284c7'}; }}
-    .badge-gold {{ background-color: rgba(245, 158, 11, 0.15); color: {'#f59e0b' if is_dark else '#d97706'}; border: 1px solid {'#f59e0b' if is_dark else '#d97706'}; }}
-    .badge-purple {{ background-color: rgba(168, 85, 247, 0.15); color: {'#c084fc' if is_dark else '#7c3aed'}; border: 1px solid {'#c084fc' if is_dark else '#7c3aed'}; }}
-    .badge-red {{ background-color: rgba(239, 68, 68, 0.15); color: {'#ef4444' if is_dark else '#dc2626'}; border: 1px solid {'#ef4444' if is_dark else '#dc2626'}; }}
+    .badge-green {{ background-color: rgba(16, 185, 129, 0.15); color: {"#10b981" if is_dark else "#059669"}; border: 1px solid {"#10b981" if is_dark else "#059669"}; }}
+    .badge-blue {{ background-color: rgba(2, 132, 199, 0.15); color: {"#38bdf8" if is_dark else "#0284c7"}; border: 1px solid {"#38bdf8" if is_dark else "#0284c7"}; }}
+    .badge-gold {{ background-color: rgba(245, 158, 11, 0.15); color: {"#f59e0b" if is_dark else "#d97706"}; border: 1px solid {"#f59e0b" if is_dark else "#d97706"}; }}
+    .badge-purple {{ background-color: rgba(168, 85, 247, 0.15); color: {"#c084fc" if is_dark else "#7c3aed"}; border: 1px solid {"#c084fc" if is_dark else "#7c3aed"}; }}
+    .badge-red {{ background-color: rgba(239, 68, 68, 0.15); color: {"#ef4444" if is_dark else "#dc2626"}; border: 1px solid {"#ef4444" if is_dark else "#dc2626"}; }}
     .live-pulse {{
         display: inline-block;
         width: 10px;
@@ -270,7 +277,10 @@ st.markdown(
 # -----------------------------------------------------------------------------
 # HEADER METRICS BANNER
 # -----------------------------------------------------------------------------
-st.markdown("<div class='main-title'>⚡ Real-Time Financial Market Lakehouse & Streaming Platform</div>", unsafe_allow_html=True)
+st.markdown(
+    "<div class='main-title'>⚡ Real-Time Financial Market Lakehouse & Streaming Platform</div>",
+    unsafe_allow_html=True,
+)
 st.markdown(
     """
     <div class='sub-title'>
@@ -286,16 +296,18 @@ st.markdown(
 # -----------------------------------------------------------------------------
 # MAIN TABS LAYOUT
 # -----------------------------------------------------------------------------
-tab_xray, tab1, tab_v2, tab_manim, tab2, tab3, tab4, tab5 = st.tabs([
-    "👁️‍🗨️ X-Ray Pipeline Vision",
-    "📈 Real-Time Streaming & Candlesticks",
-    "🚀 V2 Apache Highway Metrics",
-    "🎬 Manim Mathematical Animations",
-    "🧊 Lakehouse CDC & Time-Travel",
-    "🛡️ DLQ & Quarantine Forensics",
-    "📊 Storage & Query Benchmark (M3)",
-    "📑 Portfolio Architecture & SSOT",
-])
+tab_xray, tab1, tab_v2, tab_manim, tab2, tab3, tab4, tab5 = st.tabs(
+    [
+        "👁️‍🗨️ X-Ray Pipeline Vision",
+        "📈 Real-Time Streaming & Candlesticks",
+        "🚀 V2 Apache Highway Metrics",
+        "🎬 Manim Mathematical Animations",
+        "🧊 Lakehouse CDC & Time-Travel",
+        "🛡️ DLQ & Quarantine Forensics",
+        "📊 Storage & Query Benchmark (M3)",
+        "📑 Portfolio Architecture & SSOT",
+    ]
+)
 
 # =============================================================================
 # TAB X-RAY: INTERACTIVE PIPELINE DATA FLOW VISUALIZER
@@ -333,11 +345,15 @@ with tab_xray:
 # =============================================================================
 with tab1:
     st.subheader("Real-Time Event-Time Candlestick Mart (1-Minute Tumbling Windows)")
-    st.caption("Aggregated via 5-second bounded out-of-order watermark from live Confluent Avro stream.")
+    st.caption(
+        "Aggregated via 5-second bounded out-of-order watermark from live Confluent Avro stream."
+    )
 
     top_c1, top_c2 = st.columns([3, 1])
     with top_c1:
-        auto_feed = st.toggle("🔴 Continuous Live Feed (Auto-pull from Binance every 3s)", value=True)
+        auto_feed = st.toggle(
+            "🔴 Continuous Live Feed (Auto-pull from Binance every 3s)", value=True
+        )
     with top_c2:
         if st.button("⚡ Force Refresh Now"):
             st.session_state.live_ingestor.ingest_live_batch(limit_per_symbol=15)
@@ -394,7 +410,9 @@ with tab1:
             """).df()
 
         if candles_df.empty:
-            st.info("No candle data available yet. Click 'Fetch Live Binance Ticks Now' in the sidebar.")
+            st.info(
+                "No candle data available yet. Click 'Fetch Live Binance Ticks Now' in the sidebar."
+            )
             return
 
         # Symbol Selector
@@ -404,18 +422,24 @@ with tab1:
             selected_symbol = st.selectbox("Trading Instrument", available_symbols, index=0)
         with col_status:
             current_time = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
-            st.markdown(f"<div style='margin-top:28px; color:{'#10b981' if is_dark else '#059669'};'><b>● LIVE STREAM ACTIVE</b> (Synced: {current_time})</div>", unsafe_allow_html=True)
+            st.markdown(
+                f"<div style='margin-top:28px; color:{'#10b981' if is_dark else '#059669'};'><b>● LIVE STREAM ACTIVE</b> (Synced: {current_time})</div>",
+                unsafe_allow_html=True,
+            )
 
         # Ensure authentic historical 1-minute candles exist for selected_symbol
         with duckdb.connect(str(db_path), read_only=True) as conn:
-            cnt = conn.execute("SELECT count(*) FROM realtime_market_candles WHERE symbol = ?", [selected_symbol]).fetchone()[0]
+            cnt = conn.execute(
+                "SELECT count(*) FROM realtime_market_candles WHERE symbol = ?", [selected_symbol]
+            ).fetchone()[0]
 
         if cnt < 20:
             st.session_state.live_ingestor.seed_historical_klines(selected_symbol, limit=60)
 
         # Pull latest 60 continuous candles (read-only query)
         with duckdb.connect(str(db_path), read_only=True) as conn:
-            sym_df = conn.execute("""
+            sym_df = conn.execute(
+                """
                 SELECT
                     symbol,
                     window_start,
@@ -433,9 +457,12 @@ with tab1:
                 WHERE symbol = ?
                 ORDER BY window_start DESC
                 LIMIT 60;
-            """, [selected_symbol]).df()
+            """,
+                [selected_symbol],
+            ).df()
 
-            raw_trades_df = conn.execute("""
+            raw_trades_df = conn.execute(
+                """
                 SELECT
                     trade_id,
                     symbol,
@@ -449,10 +476,14 @@ with tab1:
                 WHERE symbol = ?
                 ORDER BY trade_timestamp DESC
                 LIMIT 20;
-            """, [selected_symbol]).df()
+            """,
+                [selected_symbol],
+            ).df()
 
         if sym_df.empty:
-            st.info("No candle data available yet. Click 'Fetch Live Binance Ticks Now' in the sidebar.")
+            st.info(
+                "No candle data available yet. Click 'Fetch Live Binance Ticks Now' in the sidebar."
+            )
             return
 
         # Sort ascending for chronological charting
@@ -578,10 +609,14 @@ with tab1:
         asks = depth_data.get("asks", [])
 
         if bids and asks:
-            bids_df = pd.DataFrame(bids, columns=["price", "quantity"]).sort_values("price", ascending=False)
+            bids_df = pd.DataFrame(bids, columns=["price", "quantity"]).sort_values(
+                "price", ascending=False
+            )
             bids_df["cumulative_vol"] = bids_df["quantity"].cumsum()
 
-            asks_df = pd.DataFrame(asks, columns=["price", "quantity"]).sort_values("price", ascending=True)
+            asks_df = pd.DataFrame(asks, columns=["price", "quantity"]).sort_values(
+                "price", ascending=True
+            )
             asks_df["cumulative_vol"] = asks_df["quantity"].cumsum()
 
             best_bid = float(bids_df["price"].iloc[0])
@@ -645,7 +680,13 @@ with tab1:
                 height=340,
                 xaxis={"gridcolor": grid_color, "title": "Price ($)"},
                 yaxis={"gridcolor": grid_color, "title": "Cumulative Size"},
-                legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1},
+                legend={
+                    "orientation": "h",
+                    "yanchor": "bottom",
+                    "y": 1.02,
+                    "xanchor": "right",
+                    "x": 1,
+                },
             )
             st.plotly_chart(depth_fig, use_container_width=True)
 
@@ -659,16 +700,18 @@ with tab1:
             tape_display = []
             for _, r in raw_trades_df.iterrows():
                 side = "🔴 SELL (MAKER)" if r["is_buyer_maker"] else "🟢 BUY (TAKER)"
-                tape_display.append({
-                    "Trade ID": str(r["trade_id"]),
-                    "Time": r["trade_time"][:12],
-                    "Symbol": r["symbol"],
-                    "Side": side,
-                    "Price ($)": f"${r['price']:,.2f}",
-                    "Size": f"{r['quantity']:,.4f}",
-                    "Value ($)": f"${r['quote_quantity']:,.2f}",
-                    "Wire Schema": "Avro v2 (Confluent)",
-                })
+                tape_display.append(
+                    {
+                        "Trade ID": str(r["trade_id"]),
+                        "Time": r["trade_time"][:12],
+                        "Symbol": r["symbol"],
+                        "Side": side,
+                        "Price ($)": f"${r['price']:,.2f}",
+                        "Size": f"{r['quantity']:,.4f}",
+                        "Value ($)": f"${r['quote_quantity']:,.2f}",
+                        "Wire Schema": "Avro v2 (Confluent)",
+                    }
+                )
             st.dataframe(pd.DataFrame(tape_display), use_container_width=True, hide_index=True)
 
         # ---------------------------------------------------------------------
@@ -676,10 +719,19 @@ with tab1:
         # ---------------------------------------------------------------------
         st.markdown("#### 📊 Materialized 1-Minute Candles Ledger")
         st.dataframe(
-            sym_df[[
-                "window_start", "open_price", "high_price", "low_price",
-                "close_price", "vwap", "base_volume", "trade_count", "taker_buy_ratio"
-            ]],
+            sym_df[
+                [
+                    "window_start",
+                    "open_price",
+                    "high_price",
+                    "low_price",
+                    "close_price",
+                    "vwap",
+                    "base_volume",
+                    "trade_count",
+                    "taker_buy_ratio",
+                ]
+            ],
             use_container_width=True,
             hide_index=True,
         )
@@ -701,6 +753,7 @@ with tab_v2:
         if st.button("⚡ Execute Live V2 Apache Run", use_container_width=True):
             with st.spinner("Executing Apache Beam -> PySpark -> PyIceberg -> Arrow Flight..."):
                 from src.v2_apache_ecosystem.run_v2_pipeline import run_full_v2_pipeline
+
                 st.session_state["v2_run_results"] = run_full_v2_pipeline()
                 st.success("V2 Apache Pipeline executed successfully across all 4 pillars!")
 
@@ -725,7 +778,9 @@ with tab_v2:
     # 1. BEAM VS SPARK MULTI-ASSET VWAP COMPARISON
     # -------------------------------------------------------------------------
     st.markdown("#### 📈 Multi-Asset VWAP: Beam 1-Min Tumbling vs Spark 1-Hour Rolling")
-    st.caption("Visualizing event-time micro-window smoothing (Beam) alongside macro-trend rolling windows (Spark).")
+    st.caption(
+        "Visualizing event-time micro-window smoothing (Beam) alongside macro-trend rolling windows (Spark)."
+    )
 
     # Sample comparison data
     sample_timestamps = pd.date_range(end=datetime.now(UTC), periods=15, freq="1min")
@@ -782,7 +837,12 @@ with tab_v2:
         height=400,
         margin={"l": 20, "r": 20, "t": 30, "b": 20},
         yaxis={"gridcolor": grid_color, "title": "BTC Price / VWAP ($)"},
-        yaxis2={"gridcolor": grid_color, "title": "ETH Price / VWAP ($)", "overlaying": "y", "side": "right"},
+        yaxis2={
+            "gridcolor": grid_color,
+            "title": "ETH Price / VWAP ($)",
+            "overlaying": "y",
+            "side": "right",
+        },
         legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1},
     )
     st.plotly_chart(vwap_cmp_fig, use_container_width=True)
@@ -796,7 +856,9 @@ with tab_v2:
 
     with col_bench1:
         st.markdown("#### ⚡ Arrow Flight Zero-Copy vs JSON SerDe")
-        st.caption("Throughput & Latency comparison streaming 1,000 ledger RecordBatches over gRPC.")
+        st.caption(
+            "Throughput & Latency comparison streaming 1,000 ledger RecordBatches over gRPC."
+        )
 
         fig_flight = go.Figure(
             data=[
@@ -856,8 +918,12 @@ with tab_v2:
                 {
                     "Snapshot ID": str(s["snapshot_id"]),
                     "Parent ID": str(s.get("parent_snapshot_id") or "root"),
-                    "Committed At (UTC)": datetime.fromtimestamp(s["timestamp_ms"] / 1000.0, tz=UTC).strftime("%Y-%m-%d %H:%M:%S"),
-                    "Manifest List": Path(s["manifest_list"]).name if s.get("manifest_list") else "N/A",
+                    "Committed At (UTC)": datetime.fromtimestamp(
+                        s["timestamp_ms"] / 1000.0, tz=UTC
+                    ).strftime("%Y-%m-%d %H:%M:%S"),
+                    "Manifest List": Path(s["manifest_list"]).name
+                    if s.get("manifest_list")
+                    else "N/A",
                     "Total Records": s.get("summary", {}).get("total-records", "N/A"),
                 }
                 for s in snaps
@@ -919,7 +985,10 @@ with tab_manim:
             "Trace trade records flowing from **Tier 1 (Binance)** ➔ **Tier 2 (Bronze Iceberg)** ➔ "
             "**Tier 3 (Silver)** ➔ **Tier 4 (Gold VWAP)** alongside a **Poison Pill** deflecting into the Dead-Letter Queue."
         )
-        st.code("manim -pqh src/visualizations/manim_lakehouse_pipeline.py LakehouseMedallionScene", language="bash")
+        st.code(
+            "manim -pqh src/visualizations/manim_lakehouse_pipeline.py LakehouseMedallionScene",
+            language="bash",
+        )
 
     with s_col2:
         st.markdown("##### 2. PyIceberg Compaction Scene")
@@ -927,7 +996,10 @@ with tab_manim:
             "Animates the **Small-File Problem**: 24 fragmented 64KB Parquet files vacuumed and rewritten by "
             "**PySpark 3.5** into 2 consolidated 128MB splits with an atomic ACID snapshot pointer swap."
         )
-        st.code("manim -pqh src/visualizations/manim_lakehouse_pipeline.py IcebergCompactionScene", language="bash")
+        st.code(
+            "manim -pqh src/visualizations/manim_lakehouse_pipeline.py IcebergCompactionScene",
+            language="bash",
+        )
 
     with s_col3:
         st.markdown("##### 3. Event-Time Watermark Scene")
@@ -935,7 +1007,10 @@ with tab_manim:
             "Visualizes a continuous time axis with **60-second tumbling windows** and an advancing watermark: "
             "$W(t) = \\max(t) - 5\\text{s}$. Shows in-order acceptance and late event drop."
         )
-        st.code("manim -pqh src/visualizations/manim_lakehouse_pipeline.py EventTimeWatermarkScene", language="bash")
+        st.code(
+            "manim -pqh src/visualizations/manim_lakehouse_pipeline.py EventTimeWatermarkScene",
+            language="bash",
+        )
 
     st.markdown("---")
     st.markdown("#### ⚡ Interactive Animated Blueprint Preview")
@@ -980,7 +1055,9 @@ with tab_manim:
 # =============================================================================
 with tab2:
     st.subheader("Apache Iceberg Open Lakehouse Format & Time-Travel Explorer")
-    st.caption("Inspect ACID table versions, committed snapshots, and reconstruct historical ledger states.")
+    st.caption(
+        "Inspect ACID table versions, committed snapshots, and reconstruct historical ledger states."
+    )
 
     iceberg_dir = settings.BASE_DIR / "data" / "lakehouse" / "iceberg"
     table_mgr = IcebergLakehouseTable(table_dir=iceberg_dir)
@@ -1009,15 +1086,19 @@ with tab2:
         st.markdown("#### Lakehouse Snapshot Commit Log")
         snap_history = []
         for s in snapshots:
-            dt = datetime.fromtimestamp(s.get("timestamp_ms", 0) / 1000.0, tz=UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+            dt = datetime.fromtimestamp(s.get("timestamp_ms", 0) / 1000.0, tz=UTC).strftime(
+                "%Y-%m-%d %H:%M:%S UTC"
+            )
             is_active = "🟢 CURRENT" if s["snapshot_id"] == selected_snap_id else "⚪ HISTORICAL"
-            snap_history.append({
-                "State": is_active,
-                "Snapshot ID": str(s["snapshot_id"]),
-                "Parent ID": str(s.get("parent_snapshot_id") or "root"),
-                "Committed At": dt,
-                "Manifest File": Path(s["manifest_file"]).name,
-            })
+            snap_history.append(
+                {
+                    "State": is_active,
+                    "Snapshot ID": str(s["snapshot_id"]),
+                    "Parent ID": str(s.get("parent_snapshot_id") or "root"),
+                    "Committed At": dt,
+                    "Manifest File": Path(s["manifest_file"]).name,
+                }
+            )
         st.dataframe(pd.DataFrame(snap_history), use_container_width=True, hide_index=True)
 
         # Reconstructed Point-in-Time Table State
@@ -1026,11 +1107,23 @@ with tab2:
         if historical_records:
             hist_df = pd.DataFrame(historical_records)
             st.dataframe(
-                hist_df[["trade_id", "symbol", "price", "quantity", "quote_quantity", "trade_timestamp", "is_buyer_maker"]],
+                hist_df[
+                    [
+                        "trade_id",
+                        "symbol",
+                        "price",
+                        "quantity",
+                        "quote_quantity",
+                        "trade_timestamp",
+                        "is_buyer_maker",
+                    ]
+                ],
                 use_container_width=True,
                 hide_index=True,
             )
-            st.caption(f"Showing {len(historical_records)} active rows as of snapshot {selected_snap_id}.")
+            st.caption(
+                f"Showing {len(historical_records)} active rows as of snapshot {selected_snap_id}."
+            )
         else:
             st.warning("Snapshot contains 0 rows.")
     else:
@@ -1041,13 +1134,17 @@ with tab2:
 # =============================================================================
 with tab3:
     st.subheader("Dead-Letter Queue (DLQ) & Data Quality Quarantine Forensics")
-    st.caption("Option B Quality Gate enforcement: poison pills are isolated with full audit diagnostics without crashing streams.")
+    st.caption(
+        "Option B Quality Gate enforcement: poison pills are isolated with full audit diagnostics without crashing streams."
+    )
 
     dlq_router = DeadLetterQueueRouter()
     dlq_records = dlq_router.read_dlq_records()
 
     # Also read CDC quality quarantine if exists
-    cdc_quarantine_file = settings.BASE_DIR / "data" / "lakehouse" / "quarantine" / "corrupt_cdc_events.jsonl"
+    cdc_quarantine_file = (
+        settings.BASE_DIR / "data" / "lakehouse" / "quarantine" / "corrupt_cdc_events.jsonl"
+    )
     cdc_quarantine_records = []
     if cdc_quarantine_file.exists():
         with open(cdc_quarantine_file, encoding="utf-8") as f:
@@ -1058,7 +1155,9 @@ with tab3:
     q1, q2, q3, q4 = st.columns(4)
     total_dlq = len(dlq_records) + len(cdc_quarantine_records)
     deser_errs = sum(1 for r in dlq_records if r.get("error_code") == "DESERIALIZATION_FAILURE")
-    contract_errs = sum(1 for r in dlq_records if r.get("error_code") == "DOMAIN_CONTRACT_VIOLATION") + len(cdc_quarantine_records)
+    contract_errs = sum(
+        1 for r in dlq_records if r.get("error_code") == "DOMAIN_CONTRACT_VIOLATION"
+    ) + len(cdc_quarantine_records)
 
     q1.metric("Total Quarantined", f"{total_dlq}")
     q2.metric("Wire Framing Errors", f"{deser_errs}")
@@ -1069,31 +1168,37 @@ with tab3:
         st.markdown("#### Quarantined Streaming Incidents (`market_trades_dlq.jsonl`)")
         table_rows = []
         for idx, r in enumerate(dlq_records):
-            table_rows.append({
-                "Index": idx,
-                "Failed At (UTC)": r.get("failed_at_utc", "N/A"),
-                "Topic": r.get("original_topic", "N/A"),
-                "Error Code": r.get("error_code", "N/A"),
-                "Error Diagnosis": r.get("error_message", "N/A"),
-                "Raw Bytes Length": r.get("raw_payload_len", 0),
-            })
+            table_rows.append(
+                {
+                    "Index": idx,
+                    "Failed At (UTC)": r.get("failed_at_utc", "N/A"),
+                    "Topic": r.get("original_topic", "N/A"),
+                    "Error Code": r.get("error_code", "N/A"),
+                    "Error Diagnosis": r.get("error_message", "N/A"),
+                    "Raw Bytes Length": r.get("raw_payload_len", 0),
+                }
+            )
         st.dataframe(pd.DataFrame(table_rows), use_container_width=True, hide_index=True)
 
         # Deep-dive Inspector
         st.markdown("#### 🔬 Poison Pill Byte Inspector")
-        selected_idx = st.selectbox("Select Quarantined Record to Inspect", range(len(dlq_records)), index=0)
+        selected_idx = st.selectbox(
+            "Select Quarantined Record to Inspect", range(len(dlq_records)), index=0
+        )
         selected_rec = dlq_records[selected_idx]
 
         c_left, c_right = st.columns(2)
         with c_left:
             st.markdown("**Diagnostic Metadata**")
-            st.json({
-                "error_code": selected_rec.get("error_code"),
-                "error_message": selected_rec.get("error_message"),
-                "original_topic": selected_rec.get("original_topic"),
-                "failed_at_utc": selected_rec.get("failed_at_utc"),
-                "schema_id": selected_rec.get("schema_id"),
-            })
+            st.json(
+                {
+                    "error_code": selected_rec.get("error_code"),
+                    "error_message": selected_rec.get("error_message"),
+                    "original_topic": selected_rec.get("original_topic"),
+                    "failed_at_utc": selected_rec.get("failed_at_utc"),
+                    "schema_id": selected_rec.get("schema_id"),
+                }
+            )
         with c_right:
             st.markdown("**Preserved Raw Payload (Base64 & Hex)**")
             b64_str = selected_rec.get("raw_payload_b64", "")
@@ -1119,15 +1224,29 @@ with tab4:
 
     b1, b2, b3 = st.columns(3)
     b1.metric("Storage Reduction", "51.9%", help="From 8.21MB CSV down to 3.95MB Snappy Parquet")
-    b2.metric("Selective Query Speedup", "21.4x FASTER", help="Partition pruning reduces scan from 97.49ms to 4.55ms")
-    b3.metric("Annual Cloud S3 Savings", "$0.00 (Self-Hosted)", help="Zero recurring AWS/Snowflake storage charges")
+    b2.metric(
+        "Selective Query Speedup",
+        "21.4x FASTER",
+        help="Partition pruning reduces scan from 97.49ms to 4.55ms",
+    )
+    b3.metric(
+        "Annual Cloud S3 Savings",
+        "$0.00 (Self-Hosted)",
+        help="Zero recurring AWS/Snowflake storage charges",
+    )
 
     # Storage Comparison Bar Chart
-    storage_data = pd.DataFrame({
-        "Format": ["Monolithic Raw CSV", "Unpartitioned Parquet (Snappy)", "Hive-Partitioned Parquet (Snappy)"],
-        "Size_MB": [8.21, 4.15, 3.95],
-        "Compression_Ratio": ["1.00x", "1.98x", "2.08x"],
-    })
+    storage_data = pd.DataFrame(
+        {
+            "Format": [
+                "Monolithic Raw CSV",
+                "Unpartitioned Parquet (Snappy)",
+                "Hive-Partitioned Parquet (Snappy)",
+            ],
+            "Size_MB": [8.21, 4.15, 3.95],
+            "Compression_Ratio": ["1.00x", "1.98x", "2.08x"],
+        }
+    )
     st.markdown("#### Physical Disk Footprint Comparison (100k Records)")
     fig_storage = go.Figure(
         data=[
@@ -1153,17 +1272,19 @@ with tab4:
 
     # Query Latency Table
     st.markdown("#### Empirical Query Execution Times")
-    query_perf = pd.DataFrame({
-        "Query Scenario": [
-            "Query 1: Full Table Aggregation Scan",
-            "Query 2: Selective Filter (symbol='BTCUSDT' AND day=3)",
-            "Query 3: High-Volume Volume Weighted Price (VWAP)",
-        ],
-        "Raw CSV (ms)": [102.91, 97.49, 108.34],
-        "Unpartitioned Parquet (ms)": [7.13, 3.22, 6.89],
-        "Hive-Partitioned Parquet (ms)": [7.19, 4.55, 6.42],
-        "Speedup vs CSV": ["14.3x", "21.4x", "16.8x"],
-    })
+    query_perf = pd.DataFrame(
+        {
+            "Query Scenario": [
+                "Query 1: Full Table Aggregation Scan",
+                "Query 2: Selective Filter (symbol='BTCUSDT' AND day=3)",
+                "Query 3: High-Volume Volume Weighted Price (VWAP)",
+            ],
+            "Raw CSV (ms)": [102.91, 97.49, 108.34],
+            "Unpartitioned Parquet (ms)": [7.13, 3.22, 6.89],
+            "Hive-Partitioned Parquet (ms)": [7.19, 4.55, 6.42],
+            "Speedup vs CSV": ["14.3x", "21.4x", "16.8x"],
+        }
+    )
     st.dataframe(query_perf, use_container_width=True, hide_index=True)
 
 # =============================================================================
@@ -1171,7 +1292,9 @@ with tab4:
 # =============================================================================
 with tab5:
     st.subheader("Authoritative Single Source of Truth (SSOT) Summary")
-    st.caption("Architectural decisions, trade-offs, and design patterns preserved for technical auditing.")
+    st.caption(
+        "Architectural decisions, trade-offs, and design patterns preserved for technical auditing."
+    )
 
     st.markdown(
         """
@@ -1193,6 +1316,12 @@ with tab5:
 
     st.markdown("---")
     st.markdown("#### 📖 Full Authoritative Documentation")
-    st.markdown("- [**`PORTFOLIO_SSOT.md`**](file:///d:/Vibe%20coding%20projects/Data%20Engineering%20Projects/PORTFOLIO_SSOT.md) (Master 500+ line specification)")
-    st.markdown("- [**`README.md`**](file:///d:/Vibe%20coding%20projects/Data%20Engineering%20Projects/README.md) (Repo Quickstart & One-command guide)")
-    st.markdown("- [**`docs/benchmark_results.md`**](file:///d:/Vibe%20coding%20projects/Data%20Engineering%20Projects/docs/benchmark_results.md) (Storage & scan study)")
+    st.markdown(
+        "- [**`PORTFOLIO_SSOT.md`**](file:///d:/Vibe%20coding%20projects/Data%20Engineering%20Projects/PORTFOLIO_SSOT.md) (Master 500+ line specification)"
+    )
+    st.markdown(
+        "- [**`README.md`**](file:///d:/Vibe%20coding%20projects/Data%20Engineering%20Projects/README.md) (Repo Quickstart & One-command guide)"
+    )
+    st.markdown(
+        "- [**`docs/benchmark_results.md`**](file:///d:/Vibe%20coding%20projects/Data%20Engineering%20Projects/docs/benchmark_results.md) (Storage & scan study)"
+    )

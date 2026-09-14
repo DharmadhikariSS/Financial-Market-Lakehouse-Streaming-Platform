@@ -15,27 +15,31 @@ import pyarrow.flight as flight
 
 logger = logging.getLogger("ArrowFlightServer")
 
-CANDLE_SCHEMA = pa.schema([
-    ("window_start", pa.string()),
-    ("window_end", pa.string()),
-    ("symbol", pa.string()),
-    ("open", pa.float64()),
-    ("high", pa.float64()),
-    ("low", pa.float64()),
-    ("close", pa.float64()),
-    ("volume", pa.float64()),
-    ("vwap", pa.float64()),
-    ("trade_count", pa.int64()),
-])
+CANDLE_SCHEMA = pa.schema(
+    [
+        ("window_start", pa.string()),
+        ("window_end", pa.string()),
+        ("symbol", pa.string()),
+        ("open", pa.float64()),
+        ("high", pa.float64()),
+        ("low", pa.float64()),
+        ("close", pa.float64()),
+        ("volume", pa.float64()),
+        ("vwap", pa.float64()),
+        ("trade_count", pa.int64()),
+    ]
+)
 
-TRADES_SCHEMA = pa.schema([
-    ("trade_id", pa.string()),
-    ("symbol", pa.string()),
-    ("price", pa.float64()),
-    ("volume", pa.float64()),
-    ("timestamp", pa.timestamp("us", tz="UTC")),
-    ("row_hash", pa.string()),
-])
+TRADES_SCHEMA = pa.schema(
+    [
+        ("trade_id", pa.string()),
+        ("symbol", pa.string()),
+        ("price", pa.float64()),
+        ("volume", pa.float64()),
+        ("timestamp", pa.timestamp("us", tz="UTC")),
+        ("row_hash", pa.string()),
+    ]
+)
 
 
 def generate_mock_datasets() -> tuple[pa.Table, pa.Table]:
@@ -57,7 +61,9 @@ def generate_mock_datasets() -> tuple[pa.Table, pa.Table]:
 
     # 1,000 mock trades
     trade_ids = [f"FLIGHT-TRD-{i:06d}" for i in range(1000)]
-    syms = ["BTCUSDT" if i % 3 == 0 else "ETHUSDT" if i % 3 == 1 else "SOLUSDT" for i in range(1000)]
+    syms = [
+        "BTCUSDT" if i % 3 == 0 else "ETHUSDT" if i % 3 == 1 else "SOLUSDT" for i in range(1000)
+    ]
     prices = [64000.0 + (i % 500) * 0.5 for i in range(1000)]
     volumes = [0.1 + (i % 20) * 0.05 for i in range(1000)]
     timestamps = [datetime.now(UTC) for _ in range(1000)]
@@ -115,7 +121,9 @@ class MarketFlightServer(flight.FlightServerBase):
 
         return flights
 
-    def get_flight_info(self, context: Any, descriptor: flight.FlightDescriptor) -> flight.FlightInfo:
+    def get_flight_info(
+        self, context: Any, descriptor: flight.FlightDescriptor
+    ) -> flight.FlightInfo:
         """Get schema and endpoint metadata for a requested flight descriptor."""
         path_key = descriptor.path[0].decode("utf-8") if descriptor.path else ""
 

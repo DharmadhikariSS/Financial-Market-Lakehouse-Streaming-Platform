@@ -105,7 +105,9 @@ class BackfillEngine:
 
         # Fallback if no records found in range: synthesize deterministic backfill fixture
         if not records:
-            logger.info("No records found in range. Synthesizing deterministic historical sequence.")
+            logger.info(
+                "No records found in range. Synthesizing deterministic historical sequence."
+            )
             synth_symbols = [symbol] if symbol else ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
             base_prices = {"BTCUSDT": 64800.0, "ETHUSDT": 3490.0, "SOLUSDT": 149.0}
             step_ms = 500  # 1 trade every 500ms
@@ -272,4 +274,6 @@ if __name__ == "__main__":
     print(f"  Candles Created:   {summary['generated_candles']}")
     print(f"  Target Table:      {summary['target_table']}")
     for sc in summary.get("sample_candles", []):
-        print(f"    - {sc['symbol']} [{sc['window_start']}]: VWAP=${sc['vwap']}, Vol=${sc['quote_volume']}")
+        print(
+            f"    - {sc['symbol']} [{sc['window_start']}]: VWAP=${sc['vwap']}, Vol=${sc['quote_volume']}"
+        )

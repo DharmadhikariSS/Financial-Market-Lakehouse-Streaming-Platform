@@ -110,10 +110,10 @@ def generate_stress_audit_fixture(file_path: Path, total_records: int = 100_000)
         dup_row = dict(original)
         if random.random() < 0.3:
             # Replay with updated price
-            orig_price = float(original["price"])
+            orig_price = float(str(original["price"]))
             dup_row["price"] = round(orig_price * 1.001, 4)
             dup_row["quote_quantity"] = round(
-                float(dup_row["price"]) * float(dup_row["quantity"]), 4
+                float(str(dup_row["price"])) * float(str(dup_row["quantity"])), 4
             )
         rows.append(dup_row)
 

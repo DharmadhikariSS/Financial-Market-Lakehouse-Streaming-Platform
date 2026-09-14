@@ -47,9 +47,7 @@ def collect_tier_metadata() -> dict[str, Any]:
     """Collect real physical storage metrics from the local filesystem."""
     csv_path = BASE_DIR / "data" / "unit_test_50.csv"
     parquet_path = BASE_DIR / "data" / "lakehouse" / "raw"
-    iceberg_meta_dir = (
-        BASE_DIR / "data" / "lakehouse" / "iceberg" / "trades_catalog" / "metadata"
-    )
+    iceberg_meta_dir = BASE_DIR / "data" / "lakehouse" / "iceberg" / "trades_catalog" / "metadata"
     duckdb_path = BASE_DIR / "data" / "streaming" / "trades.duckdb"
     dlq_path = BASE_DIR / "data" / "streaming" / "dlq" / "poison_pills.jsonl"
 
@@ -66,13 +64,17 @@ def collect_tier_metadata() -> dict[str, Any]:
     parquet_files = list(parquet_path.rglob("*.parquet")) if parquet_path.exists() else []
 
     # Count Iceberg metadata files
-    iceberg_metas = list(iceberg_meta_dir.glob("*.metadata.json")) if iceberg_meta_dir.exists() else []
+    iceberg_metas = (
+        list(iceberg_meta_dir.glob("*.metadata.json")) if iceberg_meta_dir.exists() else []
+    )
 
     tiers = [
         {
             "id": "t1",
             "footprint": f"{get_file_size_display(csv_path)} | 50 rows",
-            "path": csv_path.relative_to(BASE_DIR).as_posix() if csv_path.exists() else "data/unit_test_50.csv",
+            "path": csv_path.relative_to(BASE_DIR).as_posix()
+            if csv_path.exists()
+            else "data/unit_test_50.csv",
         },
         {
             "id": "t2",
@@ -173,7 +175,9 @@ class XRayRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         if self.path == "/api/inject-corrupt":
             self._set_headers("application/json", 200)
-            self.wfile.write(json.dumps({"status": "injected", "action": "DLQ_DIVERTED"}).encode("utf-8"))
+            self.wfile.write(
+                json.dumps({"status": "injected", "action": "DLQ_DIVERTED"}).encode("utf-8")
+            )
         else:
             self._set_headers("text/plain", 404)
             self.wfile.write(b"Not Found")

@@ -215,7 +215,7 @@ def test_dead_letter_queue_quarantine(temp_streaming_env):
     registry: SchemaRegistryClient = temp_streaming_env["registry"]
 
     # 1. Invalid Magic Byte
-    bad_magic = b"\xEE\x00\x00\x00\x01\x11\x22"
+    bad_magic = b"\xee\x00\x00\x00\x01\x11\x22"
     assert processor.process_message(bad_magic) is None
 
     # 2. Domain Contract Violation (Negative Price)

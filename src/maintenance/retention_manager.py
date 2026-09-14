@@ -31,9 +31,13 @@ class RetentionPolicyManager:
 
     def __init__(self, db_path: Path | None = None) -> None:
         self.settings = get_settings()
-        self.db_path = db_path or (self.settings.BASE_DIR / "data" / "streaming" / "realtime_mart.duckdb")
+        self.db_path = db_path or (
+            self.settings.BASE_DIR / "data" / "streaming" / "realtime_mart.duckdb"
+        )
 
-    def prune_streaming_duckdb(self, max_trade_age_hours: int = 24, max_candle_age_days: int = 7) -> dict[str, int]:
+    def prune_streaming_duckdb(
+        self, max_trade_age_hours: int = 24, max_candle_age_days: int = 7
+    ) -> dict[str, int]:
         """Prunes historical streaming raw trades and candles from DuckDB to enforce bounded memory."""
         if not self.db_path.exists():
             return {"deleted_trades": 0, "deleted_candles": 0}
@@ -51,14 +55,16 @@ class RetentionPolicyManager:
                     "DELETE FROM realtime_raw_trades WHERE trade_timestamp < ?",
                     [trade_cutoff],
                 )
-                deleted_trades = res_trades.fetchone()[0] if res_trades else 0
+                row_trades = res_trades.fetchone() if res_trades else None
+                deleted_trades = row_trades[0] if row_trades else 0
 
                 # 2. Prune old streaming candles that are already compacted into Tier 4 Gold
                 res_candles = conn.execute(
                     "DELETE FROM realtime_market_candles WHERE window_start < ?",
                     [candle_cutoff],
                 )
-                deleted_candles = res_candles.fetchone()[0] if res_candles else 0
+                row_candles = res_candles.fetchone() if res_candles else None
+                deleted_candles = row_candles[0] if row_candles else 0
 
                 # Run vacuum to reclaim deleted space
                 conn.execute("CHECKPOINT;")
@@ -99,7 +105,9 @@ class RetentionPolicyManager:
             except Exception:
                 continue
 
-        logger.info(f"[RETENTION] Iceberg snapshot sweep: {expired_count} historical metadata versions identified.")
+        logger.info(
+            f"[RETENTION] Iceberg snapshot sweep: {expired_count} historical metadata versions identified."
+        )
         return {
             "expired_snapshots": expired_count,
             "cutoff_timestamp_ms": cutoff_ms,
@@ -137,7 +145,9 @@ class RetentionPolicyManager:
                     retained.append(rec)
 
             if archived:
-                archive_file = archive_dir / f"dlq_archive_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.jsonl"
+                archive_file = (
+                    archive_dir / f"dlq_archive_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.jsonl"
+                )
                 with open(archive_file, "w", encoding="utf-8") as af:
                     for r in archived:
                         af.write(json.dumps(r) + "\n")
@@ -147,7 +157,9 @@ class RetentionPolicyManager:
                     for r in retained:
                         rf.write(json.dumps(r) + "\n")
 
-            logger.info(f"[RETENTION] DLQ sweep: {len(retained)} active records retained, {len(archived)} archived.")
+            logger.info(
+                f"[RETENTION] DLQ sweep: {len(retained)} active records retained, {len(archived)} archived."
+            )
         except Exception as exc:
             logger.warning(f"Error archiving DLQ records: {exc}")
 

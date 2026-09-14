@@ -90,9 +90,7 @@ class WindowAccumulator:
             "window_start": datetime.fromtimestamp(
                 self.window_start_ms / 1000.0, tz=UTC
             ).isoformat(),
-            "window_end": datetime.fromtimestamp(
-                self.window_end_ms / 1000.0, tz=UTC
-            ).isoformat(),
+            "window_end": datetime.fromtimestamp(self.window_end_ms / 1000.0, tz=UTC).isoformat(),
             "open_price": round(self.open_price, 2),
             "high_price": round(self.high_price, 2),
             "low_price": round(self.low_price, 2),

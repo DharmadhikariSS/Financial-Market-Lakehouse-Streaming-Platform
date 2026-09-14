@@ -77,6 +77,7 @@ def run_flight_benchmark(location: str = "grpc://127.0.0.1:8815") -> dict[str, A
 
 if __name__ == "__main__":
     import sys
+
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
 
@@ -94,8 +95,12 @@ if __name__ == "__main__":
         bm = run_flight_benchmark(location="grpc://127.0.0.1:8816")
         print("[+] Apache Arrow Flight Zero-Copy Benchmark Results:")
         print(f"  Rows Streamed:       {bm['rows_streamed']}")
-        print(f"  Flight Latency:      {bm['flight_duration_ms']} ms ({bm['flight_throughput_rows_sec']:,} rows/sec)")
-        print(f"  JSON SerDe Latency:  {bm['json_serde_duration_ms']} ms ({bm['json_throughput_rows_sec']:,} rows/sec)")
+        print(
+            f"  Flight Latency:      {bm['flight_duration_ms']} ms ({bm['flight_throughput_rows_sec']:,} rows/sec)"
+        )
+        print(
+            f"  JSON SerDe Latency:  {bm['json_serde_duration_ms']} ms ({bm['json_throughput_rows_sec']:,} rows/sec)"
+        )
         print(f"  Arrow Speedup:       {bm['speedup_factor']}x faster than JSON!")
     finally:
         server.shutdown()

@@ -124,7 +124,9 @@ class SchemaRegistryClient:
                     )
         return True, "Compatible"
 
-    def serialize(self, subject: str, record: dict[str, Any], schema_id: int | None = None) -> bytes:
+    def serialize(
+        self, subject: str, record: dict[str, Any], schema_id: int | None = None
+    ) -> bytes:
         """Serialize a dict record into Confluent Wire Format bytes."""
         if schema_id is None:
             schema_id = self.get_latest_schema_id(subject)

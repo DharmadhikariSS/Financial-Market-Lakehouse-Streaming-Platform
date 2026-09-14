@@ -64,7 +64,7 @@ class ParseAndValidateTradeFn(beam.DoFn):
             }
 
             # Emit valid trade with event-time timestamp
-            yield beam.window.TimestampedValue(clean_trade, ts_sec)
+            yield window.TimestampedValue(clean_trade, ts_sec)
 
         except Exception as exc:
             # Route contract violations to TaggedOutput DLQ
@@ -161,7 +161,7 @@ class FormatWindowCandleFn(beam.DoFn):
     def process(
         self,
         element: tuple[str, dict[str, Any]],
-        win_param: beam.DoFn.WindowParam = beam.DoFn.WindowParam,
+        win_param: Any = beam.DoFn.WindowParam,
     ) -> Any:
         symbol, candle = element
         start_iso = win_param.start.to_utc_datetime().isoformat()
@@ -228,22 +228,18 @@ def execute_beam_pipeline(
         raw_stream = p | "CreateEvents" >> beam.Create(trades)
 
         # 2. Parse, validate, assign event-time timestamps & separate DLQ
-        validated = (
-            raw_stream
-            | "ParseAndValidate"
-            >> beam.ParDo(ParseAndValidateTradeFn()).with_outputs(
-                ParseAndValidateTradeFn.TAG_DLQ,
-                main=ParseAndValidateTradeFn.TAG_VALID,
-            )
+        validated = raw_stream | "ParseAndValidate" >> beam.ParDo(
+            ParseAndValidateTradeFn()
+        ).with_outputs(
+            ParseAndValidateTradeFn.TAG_DLQ,
+            main=ParseAndValidateTradeFn.TAG_VALID,
         )
 
         valid_trades = validated[ParseAndValidateTradeFn.TAG_VALID]
         dlq_records = validated[ParseAndValidateTradeFn.TAG_DLQ]
 
         # 3. Key by symbol
-        keyed_trades = valid_trades | "KeyBySymbol" >> beam.Map(
-            lambda t: (t["symbol"], t)
-        )
+        keyed_trades = valid_trades | "KeyBySymbol" >> beam.Map(lambda t: (t["symbol"], t))
 
         # 4. Window into fixed tumbling windows
         windowed = keyed_trades | "FixedWindow" >> beam.WindowInto(
@@ -251,22 +247,14 @@ def execute_beam_pipeline(
         )
 
         # 5. Combine OHLCV & VWAP per window per symbol
-        accumulated = windowed | "CombineCandles" >> beam.CombinePerKey(
-            CandleAccumulator()
-        )
+        accumulated = windowed | "CombineCandles" >> beam.CombinePerKey(CandleAccumulator())
 
         # 6. Format with window boundaries
-        formatted_candles = accumulated | "FormatCandles" >> beam.ParDo(
-            FormatWindowCandleFn()
-        )
+        formatted_candles = accumulated | "FormatCandles" >> beam.ParDo(FormatWindowCandleFn())
 
         # 7. Write to deterministic output files
-        _ = formatted_candles | "WriteCandles" >> beam.ParDo(
-            AppendToJsonFileFn(candles_file)
-        )
-        _ = dlq_records | "WriteDLQ" >> beam.ParDo(
-            AppendToJsonFileFn(dlq_file)
-        )
+        _ = formatted_candles | "WriteCandles" >> beam.ParDo(AppendToJsonFileFn(candles_file))
+        _ = dlq_records | "WriteDLQ" >> beam.ParDo(AppendToJsonFileFn(dlq_file))
 
     # Read back collected results
     candles: list[dict[str, Any]] = []

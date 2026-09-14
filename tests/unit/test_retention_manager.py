@@ -52,11 +52,14 @@ def mock_retention_env(tmp_path: Path):
         old_trade_ts = (now_utc - timedelta(hours=48)).isoformat()
         recent_trade_ts = now_utc.isoformat()
 
-        conn.execute("""
+        conn.execute(
+            """
             INSERT INTO realtime_raw_trades VALUES
             (1, 'BTCUSDT', 77000.0, 1.0, 77000.0, ?, false, 'MARKET', ?),
             (2, 'BTCUSDT', 77100.0, 1.0, 77100.0, ?, false, 'MARKET', ?)
-        """, [old_trade_ts, old_trade_ts, recent_trade_ts, recent_trade_ts])
+        """,
+            [old_trade_ts, old_trade_ts, recent_trade_ts, recent_trade_ts],
+        )
 
     # Setup DLQ with 1 old record (40 days ago) and 1 recent record (2 days ago)
     old_dlq_dt = (now_utc - timedelta(days=40)).isoformat()

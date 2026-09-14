@@ -43,7 +43,7 @@ class MarketApiExtractor:
         limit: int = 1000,
     ) -> list[dict[str, Any]]:
         """Fetches a batch of trades for a specific symbol with retry logic."""
-        params = {"symbol": symbol.upper(), "limit": limit}
+        params: dict[str, str | int] = {"symbol": symbol.upper(), "limit": limit}
 
         for attempt in range(1, self.max_retries + 1):
             try:

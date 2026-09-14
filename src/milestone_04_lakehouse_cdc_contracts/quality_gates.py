@@ -72,7 +72,6 @@ class QualityContractGate:
                     f"ANOMALY_DRIFT_VIOLATION: price {price} exceeds plausibility threshold of {max_limit}"
                 )
 
-
         return violations
 
     def filter_and_quarantine(

@@ -51,6 +51,7 @@ python_version = "3.11"
 strict = false
 ignore_missing_imports = true
 warn_unused_configs = true
+explicit_package_bases = true
 
 [tool.pytest.ini_options]
 minversion = "8.0"

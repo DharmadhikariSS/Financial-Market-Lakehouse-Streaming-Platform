@@ -146,13 +146,15 @@ class PyIcebergLakehouseManager:
         table = self.get_or_create_table()
         history = []
         for snap in table.snapshots():
-            history.append({
-                "snapshot_id": snap.snapshot_id,
-                "timestamp_ms": snap.timestamp_ms,
-                "parent_snapshot_id": snap.parent_snapshot_id,
-                "manifest_list": snap.manifest_list,
-                "summary": snap.summary.additional_properties if snap.summary else {},
-            })
+            history.append(
+                {
+                    "snapshot_id": snap.snapshot_id,
+                    "timestamp_ms": snap.timestamp_ms,
+                    "parent_snapshot_id": snap.parent_snapshot_id,
+                    "manifest_list": snap.manifest_list,
+                    "summary": snap.summary.additional_properties if snap.summary else {},
+                }
+            )
         return history
 
     def query_table(self, snapshot_id: int | None = None) -> pa.Table:

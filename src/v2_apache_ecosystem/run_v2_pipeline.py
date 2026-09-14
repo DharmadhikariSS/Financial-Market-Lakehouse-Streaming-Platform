@@ -45,24 +45,28 @@ def generate_v2_sample_stream(count: int = 60) -> list[dict[str, Any]]:
         vol = round(0.1 + (i % 10) * 0.05, 4)
         ts = now - (count - i) * 2  # 2-second spacing
 
-        trades.append({
-            "trade_id": f"V2-TRD-{i:05d}",
-            "symbol": sym,
-            "price": price,
-            "volume": vol,
-            "trade_timestamp": ts,
-            "row_hash": f"sha256-v2-mock-hash-{i}",
-        })
+        trades.append(
+            {
+                "trade_id": f"V2-TRD-{i:05d}",
+                "symbol": sym,
+                "price": price,
+                "volume": vol,
+                "trade_timestamp": ts,
+                "row_hash": f"sha256-v2-mock-hash-{i}",
+            }
+        )
 
     # Deliberate poison pill to verify Beam TaggedOutput DLQ isolation
-    trades.append({
-        "trade_id": "V2-POISON-PILL-999",
-        "symbol": "BTCUSDT",
-        "price": -45000.0,  # Negative price violation
-        "volume": 1.0,
-        "trade_timestamp": now,
-        "row_hash": "sha256-poison-pill",
-    })
+    trades.append(
+        {
+            "trade_id": "V2-POISON-PILL-999",
+            "symbol": "BTCUSDT",
+            "price": -45000.0,  # Negative price violation
+            "volume": 1.0,
+            "trade_timestamp": now,
+            "row_hash": "sha256-poison-pill",
+        }
+    )
 
     return trades
 
@@ -74,7 +78,9 @@ def run_full_v2_pipeline() -> dict[str, Any]:
     print("=" * 75)
 
     raw_trades = generate_v2_sample_stream(60)
-    print(f"\n[+] Generated {len(raw_trades)} raw incoming trade events (including 1 deliberate poison pill).")
+    print(
+        f"\n[+] Generated {len(raw_trades)} raw incoming trade events (including 1 deliberate poison pill)."
+    )
 
     # -------------------------------------------------------------------------
     # 1. APACHE BEAM UNIFIED STREAM & DLQ
@@ -86,7 +92,9 @@ def run_full_v2_pipeline() -> dict[str, Any]:
 
     print(f"  ✓ Beam Status:      {beam_res['status'].upper()}")
     print(f"  ✓ Valid Trades:     {beam_res['valid_count']}")
-    print(f"  ✓ Quarantined DLQ:  {beam_res['dlq_count']} (Poison pill successfully routed to side-output)")
+    print(
+        f"  ✓ Quarantined DLQ:  {beam_res['dlq_count']} (Poison pill successfully routed to side-output)"
+    )
     print(f"  ✓ Materialized:     {len(beam_res['candles'])} 1-minute tumbling window candles")
     print(f"  ✓ Duration:         {beam_dur:.2f}s")
 

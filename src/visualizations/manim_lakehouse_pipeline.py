@@ -47,6 +47,7 @@ try:
         Transform,
         VGroup,
     )
+
     MANIM_AVAILABLE = True
 except ImportError:
     MANIM_AVAILABLE = False
@@ -108,9 +109,21 @@ class LakehouseMedallionScene(Scene):  # type: ignore[misc]
         valid_tag = Text("Valid Trade ($77,650)", font_size=14, color=GREEN).next_to(valid_dot, UP)
 
         self.play(FadeIn(valid_dot), FadeIn(valid_tag))
-        self.play(valid_dot.animate.move_to(g2.get_center()), valid_tag.animate.next_to(g2, UP), run_time=1.2)
-        self.play(valid_dot.animate.move_to(g3.get_center()), valid_tag.animate.next_to(g3, UP), run_time=1.2)
-        self.play(valid_dot.animate.move_to(g4.get_center()), valid_tag.animate.next_to(g4, UP), run_time=1.2)
+        self.play(
+            valid_dot.animate.move_to(g2.get_center()),
+            valid_tag.animate.next_to(g2, UP),
+            run_time=1.2,
+        )
+        self.play(
+            valid_dot.animate.move_to(g3.get_center()),
+            valid_tag.animate.next_to(g3, UP),
+            run_time=1.2,
+        )
+        self.play(
+            valid_dot.animate.move_to(g4.get_center()),
+            valid_tag.animate.next_to(g4, UP),
+            run_time=1.2,
+        )
         self.play(Indicate(tier4, color=GREEN))
         self.play(FadeOut(valid_dot), FadeOut(valid_tag))
 
@@ -120,10 +133,18 @@ class LakehouseMedallionScene(Scene):  # type: ignore[misc]
         bad_tag = Text("Poison Pill (Price = -50)", font_size=14, color=RED).next_to(bad_dot, UP)
 
         self.play(FadeIn(bad_dot), FadeIn(bad_tag))
-        self.play(bad_dot.animate.move_to(g2.get_center()), bad_tag.animate.next_to(g2, UP), run_time=1.0)
-        self.play(bad_dot.animate.move_to(g3.get_center()), bad_tag.animate.next_to(g3, UP), run_time=1.0)
+        self.play(
+            bad_dot.animate.move_to(g2.get_center()), bad_tag.animate.next_to(g2, UP), run_time=1.0
+        )
+        self.play(
+            bad_dot.animate.move_to(g3.get_center()), bad_tag.animate.next_to(g3, UP), run_time=1.0
+        )
         self.play(Indicate(tier3, color=RED))
-        self.play(bad_dot.animate.move_to(g_dlq.get_center()), bad_tag.animate.next_to(g_dlq, RIGHT), run_time=1.2)
+        self.play(
+            bad_dot.animate.move_to(g_dlq.get_center()),
+            bad_tag.animate.next_to(g_dlq, RIGHT),
+            run_time=1.2,
+        )
         self.play(Indicate(dlq_node, color=RED))
         self.wait(1.5)
 
@@ -136,7 +157,11 @@ class IcebergCompactionScene(Scene):  # type: ignore[misc]
             return
 
         title = Text("Apache Iceberg Small-File Compaction", font_size=36, weight=BOLD)
-        subtitle = Text("24 Small Parquet Fragments (64KB) ➔ 2 Optimized Splits (128MB)", font_size=20, color=GRAY)
+        subtitle = Text(
+            "24 Small Parquet Fragments (64KB) ➔ 2 Optimized Splits (128MB)",
+            font_size=20,
+            color=GRAY,
+        )
         header = VGroup(title, subtitle).arrange(DOWN, buff=0.2).to_edge(UP, buff=0.5)
         self.play(FadeIn(header))
 
@@ -159,7 +184,9 @@ class IcebergCompactionScene(Scene):  # type: ignore[misc]
         # PySpark Compactor Engine
         compactor_box = RoundedRectangle(corner_radius=0.2, height=1.2, width=3.2, color=PURPLE)
         compactor_box.set_fill(PURPLE, opacity=0.3)
-        compactor_txt = Text("PySpark 3.5\n`rewrite_data_files`", font_size=16).move_to(compactor_box)
+        compactor_txt = Text("PySpark 3.5\n`rewrite_data_files`", font_size=16).move_to(
+            compactor_box
+        )
         compactor = VGroup(compactor_box, compactor_txt).shift(UP * 0.5)
 
         self.play(FadeIn(compactor))
@@ -183,7 +210,9 @@ class IcebergCompactionScene(Scene):  # type: ignore[misc]
         self.play(FadeIn(bf1_txt), FadeIn(bf2_txt), Transform(pre_label, post_label))
 
         # ACID Snapshot pointer swap
-        snap_text = Text("ACID Snapshot: 0x9f1a23 ➔ 0xbb8204 (Atomic Metadata Swap)", font_size=18, color=YELLOW)
+        snap_text = Text(
+            "ACID Snapshot: 0x9f1a23 ➔ 0xbb8204 (Atomic Metadata Swap)", font_size=18, color=YELLOW
+        )
         snap_text.next_to(header, DOWN, buff=0.4)
         self.play(FadeIn(snap_text), Indicate(snap_text, color=YELLOW))
         self.wait(2)
@@ -197,7 +226,9 @@ class EventTimeWatermarkScene(Scene):  # type: ignore[misc]
             return
 
         title = Text("Event-Time Watermark & Tumbling Windows", font_size=36, weight=BOLD)
-        subtitle = Text("Window Size = 60s | Allowed Lateness (Watermark Delay) = 5s", font_size=18, color=GRAY)
+        subtitle = Text(
+            "Window Size = 60s | Allowed Lateness (Watermark Delay) = 5s", font_size=18, color=GRAY
+        )
         header = VGroup(title, subtitle).arrange(DOWN, buff=0.2).to_edge(UP, buff=0.5)
         self.play(FadeIn(header))
 
@@ -215,18 +246,24 @@ class EventTimeWatermarkScene(Scene):  # type: ignore[misc]
         # Tumbling Window Rectangles
         w1 = Rectangle(height=1.8, width=3.66, color=BLUE).set_fill(BLUE, opacity=0.15)
         w1.move_to(axis.n2p(30) + UP * 1.1)
-        w1_lbl = Text("Window 1 [00:00 - 01:00)", font_size=14, color=BLUE).next_to(w1, UP, buff=0.15)
+        w1_lbl = Text("Window 1 [00:00 - 01:00)", font_size=14, color=BLUE).next_to(
+            w1, UP, buff=0.15
+        )
 
         w2 = Rectangle(height=1.8, width=3.66, color=BLUE).set_fill(BLUE, opacity=0.15)
         w2.move_to(axis.n2p(90) + UP * 1.1)
-        w2_lbl = Text("Window 2 [01:00 - 02:00)", font_size=14, color=BLUE).next_to(w2, UP, buff=0.15)
+        w2_lbl = Text("Window 2 [01:00 - 02:00)", font_size=14, color=BLUE).next_to(
+            w2, UP, buff=0.15
+        )
 
         self.play(FadeIn(w1), FadeIn(w1_lbl), FadeIn(w2), FadeIn(w2_lbl))
 
         # Watermark Line
         wm_line = DashedLine(start=UP * 2.5, end=DOWN * 1.5, color=YELLOW, stroke_width=3)
         wm_line.move_to(axis.n2p(45))
-        wm_lbl = Text("Watermark W(t) = max(t) - 5s", font_size=14, color=YELLOW).next_to(wm_line, UP)
+        wm_lbl = Text("Watermark W(t) = max(t) - 5s", font_size=14, color=YELLOW).next_to(
+            wm_line, UP
+        )
 
         self.play(Create(wm_line), FadeIn(wm_lbl))
 
@@ -249,7 +286,9 @@ class EventTimeWatermarkScene(Scene):  # type: ignore[misc]
 
         # Late Event Arriving (t = 50s, but Watermark is now 65s -> Dropped!)
         late_dot = Dot(color=RED, radius=0.14).move_to(axis.n2p(50) + UP * 2.0)
-        late_txt = Text("Late Trade (t=50s < W=65s) -> DLQ Drop!", font_size=14, color=RED).next_to(late_dot, UP)
+        late_txt = Text("Late Trade (t=50s < W=65s) -> DLQ Drop!", font_size=14, color=RED).next_to(
+            late_dot, UP
+        )
         self.play(FadeIn(late_dot), FadeIn(late_txt))
         self.play(late_dot.animate.shift(DOWN * 3.5), FadeOut(late_txt), run_time=1.2)
         self.wait(2)
@@ -269,13 +308,17 @@ def main() -> None:
         print("      2. IcebergCompactionScene (Small-file Parquet Consolidation)")
         print("      3. EventTimeWatermarkScene (Advancing Watermark & Tumbling Windows)")
         print("\nTo render in 1080p 60fps:")
-        print("    manim -pqh src/visualizations/manim_lakehouse_pipeline.py LakehouseMedallionScene")
+        print(
+            "    manim -pqh src/visualizations/manim_lakehouse_pipeline.py LakehouseMedallionScene"
+        )
     else:
         print("[!] Manim is not installed yet. To install and render high-res videos:")
         print("    pip install manim")
         print("    # Note: Requires ffmpeg installed on your PATH.")
         print("\nOnce installed, render with:")
-        print("    manim -pqh src/visualizations/manim_lakehouse_pipeline.py LakehouseMedallionScene")
+        print(
+            "    manim -pqh src/visualizations/manim_lakehouse_pipeline.py LakehouseMedallionScene"
+        )
     print("=" * 70)
 
 
