@@ -19,6 +19,61 @@
       --font-mono: "Fira Code", "JetBrains Mono", Consolas, monospace;
     }
 
+    body.light-theme {
+      --bg-dark: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #cbd5e1;
+      --neon-cyan: #0284c7;
+      --neon-green: #059669;
+      --neon-purple: #7c3aed;
+      --neon-amber: #d97706;
+      --neon-red: #dc2626;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+    }
+    body.light-theme header {
+      background: rgba(255, 255, 255, 0.92);
+      border-bottom: 1px solid #cbd5e1;
+    }
+    body.light-theme .btn {
+      background: #f1f5f9;
+      color: #0f172a;
+      border-color: #cbd5e1;
+    }
+    body.light-theme .btn:hover {
+      background: #e2e8f0;
+    }
+    body.light-theme .node-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    }
+    body.light-theme .xray-drawer {
+      background: #ffffff;
+      border-top: 1px solid #cbd5e1;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+    }
+    body.light-theme .drawer-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+    body.light-theme .metric-chip {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+    }
+    body.light-theme .toggle-pill {
+      background: #e2e8f0;
+      border: 1px solid #cbd5e1;
+    }
+    body.light-theme .toggle-btn {
+      color: #64748b;
+    }
+    body.light-theme .toggle-btn.active {
+      background: #ffffff;
+      color: #0284c7;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -555,6 +610,11 @@
       <!-- Inject Poison Pill Button -->
       <button class="btn btn-danger" onclick="injectPoisonPill()">
         <span>🧪 Inject Poison Pill</span>
+      </button>
+
+      <!-- Theme Switcher -->
+      <button class="btn" id="btnThemeToggle" onclick="toggleTheme()" title="Toggle Dark / Light Theme">
+        <span id="themeIcon">☀️</span> <span id="themeText">Light</span>
       </button>
     </div>
   </header>
@@ -1429,6 +1489,33 @@ TaggedOutput("corrupt_events", {
       }
     }
     setInterval(pollBackend, 3000);
+
+    // =========================================================================
+    // THEME SWITCHER (DARK CYBERPUNK vs LIGHT BLUEPRINT)
+    // =========================================================================
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle("light-theme");
+      const icon = document.getElementById("themeIcon");
+      const text = document.getElementById("themeText");
+      if (isLight) {
+        if (icon) icon.textContent = "🌙";
+        if (text) text.textContent = "Dark";
+        localStorage.setItem("xray_theme", "light");
+      } else {
+        if (icon) icon.textContent = "☀️";
+        if (text) text.textContent = "Light";
+        localStorage.setItem("xray_theme", "dark");
+      }
+    }
+
+    const themeParam = new URLSearchParams(window.location.search).get("theme");
+    if (themeParam === "light" || localStorage.getItem("xray_theme") === "light") {
+      document.body.classList.add("light-theme");
+      const icon = document.getElementById("themeIcon");
+      const text = document.getElementById("themeText");
+      if (icon) icon.textContent = "🌙";
+      if (text) text.textContent = "Dark";
+    }
 
     // Boot
     resizeCanvas();
