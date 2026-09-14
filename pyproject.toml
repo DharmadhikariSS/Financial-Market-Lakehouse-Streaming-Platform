@@ -28,6 +28,8 @@ dependencies = [
     "apache-beam>=2.50.0",
     "pyspark>=3.5.0",
     "plotly>=7.0.0",
+    "httpx>=0.25.0",
+    "pandas>=2.0.0",
 ]
 
 [project.optional-dependencies]
