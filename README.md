@@ -1,11 +1,30 @@
 # Real-Time Financial Market Lakehouse & Resilient Streaming Engine
 
-[![CI Pipeline](https://github.com/yourname/data-engineering-mastery/actions/workflows/ci.yml/badge.svg)](https://github.com/yourname/data-engineering-mastery)
+[![GitHub Release](https://img.shields.io/github/v/release/DharmadhikariSS/Financial-Market-Lakehouse-Streaming-Platform?color=blue&logo=github)](https://github.com/DharmadhikariSS/Financial-Market-Lakehouse-Streaming-Platform/releases/tag/v2.0.0)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Unit Tests](https://img.shields.io/badge/tests-23%2F23%20passing-brightgreen.svg)](#-testing--reliability)
 [![Cost: $0.00](https://img.shields.io/badge/cloud_cost-$0.00-brightgreen.svg)](#-zero-cloud-spend-guarantee)
 
 An end-to-end, production-grade Data Engineering platform tracking cryptocurrency and foreign exchange trade ledgers. Built with 100% open-source tooling, zero recurring cloud spend, strict idempotency guarantees, and complete single-command local reproducibility.
+
+---
+
+## 🎬 Interactive System Demonstration
+
+[![Watch Demo](https://img.shields.io/badge/Release_v2.0.0-Download_Demo_Video_(4m28s)-blue?style=for-the-badge&logo=github)](https://github.com/DharmadhikariSS/Financial-Market-Lakehouse-Streaming-Platform/releases/tag/v2.0.0)
+
+> [!TIP]
+> 📹 **[Watch or Download the 1080p Walkthrough Video (MP4, 307 MB)](https://github.com/DharmadhikariSS/Financial-Market-Lakehouse-Streaming-Platform/releases/download/v2.0.0/financial_market_lakehouse_demo.mp4)**
+> 
+> **Key Features Demonstrated in the Video:**
+> - **👁️‍🗨️ Pipeline X-Ray Vision**: Real-time particle stream across Tier 1 through Tier 5 with step-by-step inspection and live poison pill injection.
+> - **📈 Institutional Candlestick & Volume Charts**: Authentic 60-candle Binance Klines with EMA-9, EMA-21, golden VWAP, and synchronized volume bars.
+> - **🌊 Market Order Book Depth**: 100-level bid/ask liquidity walls with mid-market reference and live depth imbalance ratios.
+> - **🚀 V2 Enterprise Apache Highway**: Apache Beam tumbling windowing, Apache Spark 3.5 rolling multi-asset VWAP, and PyArrow Flight zero-copy gRPC benchmarks (>200k rows/s).
+> - **🎨 Dynamic Theme Engine**: Instant switching between Dark Obsidian and Crisp Enterprise Light modes.
+> - **🎬 ManimCE Mathematical Animations**: Programmatic vector explainer scenes for small-file compaction and event-time watermarking.
+> - **🏛️ Data Retention Engine**: Automated multi-tier lifecycle management (SEC 17a-4 / FINRA 4511 WORM compliance).
 
 ---
 
@@ -43,8 +62,8 @@ flowchart TD
 
 ### 1. Clone & Set Up Environment
 ```bash
-git clone https://github.com/yourname/data-engineering-mastery.git
-cd data-engineering-mastery
+git clone https://github.com/DharmadhikariSS/Financial-Market-Lakehouse-Streaming-Platform.git
+cd Financial-Market-Lakehouse-Streaming-Platform
 cp .env.example .env
 ```
 
