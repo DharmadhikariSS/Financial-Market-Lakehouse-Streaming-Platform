@@ -14,7 +14,7 @@ import io
 import json
 import struct
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import fastavro
 
@@ -63,7 +63,7 @@ class SchemaRegistryClient:
 
     def register(self, subject: str, schema: dict[str, Any]) -> int:
         """Register a schema under a subject after verifying BACKWARD compatibility."""
-        parsed_schema = fastavro.parse_schema(schema)
+        parsed_schema = cast(dict[str, Any], fastavro.parse_schema(schema))
 
         # If subject already has versions, verify BACKWARD compatibility against latest
         if subject in self._subject_versions and self._subject_versions[subject]:
@@ -167,4 +167,4 @@ class SchemaRegistryClient:
         record = fastavro.schemaless_reader(
             in_buf, writer_schema=writer_schema, reader_schema=reader_schema
         )
-        return schema_id, record
+        return schema_id, cast(dict[str, Any], record)
