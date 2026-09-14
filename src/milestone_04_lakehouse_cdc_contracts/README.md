@@ -71,6 +71,7 @@ Every commit produces an immutable new snapshot and versioned metadata file (`v1
 * Rollback and Time Travel allow querying table state as of any historical snapshot ID:
   ```python
   from src.milestone_04_lakehouse_cdc_contracts.iceberg_writer import IcebergLakehouseTable
+
   table = IcebergLakehouseTable()
   historical_records = table.time_travel_query(snapshot_id=1773446400000)
   ```
